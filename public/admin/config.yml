@@ -1,0 +1,256 @@
+# ─────────────────────────────────────────────────────────────
+# WPNX 107.7 FM — Decap CMS Configuration
+# Docs: https://decapcms.org/docs/configuration-options/
+# ─────────────────────────────────────────────────────────────
+
+backend:
+  name: github
+  repo: tobiechvarria/wpnx
+  branch: main
+  base_url: https://wpnx.pages.dev
+
+# Where uploaded images go in the repo
+media_folder: public/images
+# Where images are served from in the built site
+public_folder: /images
+
+# ─────────────────────────────────────────────────────────────
+# COLLECTIONS
+# Each collection = one section of the editor dashboard
+# ─────────────────────────────────────────────────────────────
+collections:
+
+  # ── SITE SETTINGS ─────────────────────────────────────────
+  # Hero text, station info, contact email — things that rarely change
+  - name: settings
+    label: "⚙️ Site Settings"
+    files:
+      - label: "Station Info"
+        name: station
+        file: src/content/settings/station.json
+        fields:
+          - label: "Station Name"
+            name: name
+            widget: string
+            hint: "e.g. WPNX 107.7 FM"
+
+          - label: "Tagline"
+            name: tagline
+            widget: string
+            hint: "Short line shown under the station name in the hero"
+
+          - label: "Hero Body Text"
+            name: heroBody
+            widget: text
+            hint: "The 2–3 sentence description in the hero section"
+
+          - label: "Contact Email"
+            name: contactEmail
+            widget: string
+            hint: "Shown in footer and contact form"
+
+          - label: "Transmitter Location"
+            name: transmitterAddress
+            widget: text
+            hint: "Street address of the transmitter"
+
+          - label: "GRC Venue Name"
+            name: grcVenueName
+            widget: string
+
+          - label: "GRC Venue Address"
+            name: grcVenueAddress
+            widget: text
+
+  # ── ON DEMAND SHOWS ───────────────────────────────────────
+  # Each show is a separate entry — easy to add, reorder, delete
+  - name: shows
+    label: "🎙️ On Demand Shows"
+    label_singular: "Show"
+    folder: src/content/shows
+    create: true
+    slug: "{{slug}}"
+    # Sort newest first in the dashboard
+    sortable_fields: ["id", "show"]
+    fields:
+      - label: "Show Number"
+        name: id
+        widget: string
+        hint: "e.g. 01, 02, 03 — used for display ordering"
+
+      - label: "Show Name"
+        name: show
+        widget: string
+        hint: "e.g. E-A-V Rudio, PTK Late Nite"
+
+      - label: "Host"
+        name: host
+        widget: string
+        required: false
+        hint: "e.g. w/ Timo Snide — leave blank if no host credit"
+
+      - label: "Episode Title"
+        name: episode
+        widget: string
+        hint: "e.g. June 10, 2026 — Andy's Summer Ska-Punk Showcase"
+
+      - label: "Audio File URL"
+        name: src
+        widget: string
+        required: false
+        hint: "Direct URL to the MP3 file. Leave blank if not yet available — will show 'Coming Soon'"
+
+  # ── GRC CONFERENCE ────────────────────────────────────────
+  - name: grc
+    label: "📻 GRC Conference"
+    files:
+      - label: "Conference Details"
+        name: grc
+        file: src/content/grc/grc.json
+        fields:
+          - label: "Year"
+            name: year
+            widget: number
+            default: 2026
+
+          - label: "Edition (e.g. 30th Annual)"
+            name: edition
+            widget: string
+
+          - label: "Start Date"
+            name: startDate
+            widget: date
+            format: "MMMM D, YYYY"
+
+          - label: "End Date"
+            name: endDate
+            widget: date
+            format: "MMMM D, YYYY"
+
+          - label: "Banner Text"
+            name: bannerText
+            widget: string
+            hint: "Short line shown in the top red banner"
+
+          - label: "Description"
+            name: description
+            widget: text
+            hint: "The paragraph of text in the GRC section"
+
+          - label: "Focus Areas"
+            name: focusAreas
+            widget: list
+            label_singular: "Focus Area"
+            field:
+              label: "Focus Area"
+              name: item
+              widget: string
+
+          - label: "Early Bird Ticket Price"
+            name: earlyBirdPrice
+            widget: number
+            value_type: int
+            default: 150
+
+          - label: "Early Bird End Date"
+            name: earlyBirdEnd
+            widget: string
+            hint: "e.g. July 31, 2026"
+
+          - label: "General Ticket Price"
+            name: generalPrice
+            widget: number
+            value_type: int
+            default: 195
+
+          - label: "Registration Opens"
+            name: registrationOpens
+            widget: string
+            hint: "ISO date for the countdown, e.g. 2026-07-01T00:00:00"
+
+  # ── SCHEDULE ──────────────────────────────────────────────
+  - name: schedule
+    label: "📅 Weekend Schedule"
+    label_singular: "Day"
+    files:
+      - label: "Conference Schedule"
+        name: schedule
+        file: src/content/schedule/schedule.json
+        fields:
+          - label: "Days"
+            name: ""
+            widget: list
+            label_singular: "Day"
+            fields:
+              - label: "Day Name"
+                name: day
+                widget: string
+                hint: "e.g. Thursday"
+
+              - label: "Date"
+                name: date
+                widget: string
+                hint: "e.g. September 24"
+
+              - label: "Label"
+                name: label
+                widget: string
+                hint: "e.g. Day 1"
+
+              - label: "Events"
+                name: events
+                widget: list
+                label_singular: "Event"
+                fields:
+                  - label: "Time"
+                    name: time
+                    widget: string
+                    hint: "e.g. Evening, All Day, 7:00 PM"
+
+                  - label: "Event Name"
+                    name: name
+                    widget: string
+
+                  - label: "Event Type"
+                    name: type
+                    widget: select
+                    options:
+                      - { label: "Keynote / Opening", value: keynote }
+                      - { label: "Film Screening", value: screening }
+                      - { label: "Workshop / Session", value: workshop }
+                      - { label: "Performance", value: performance }
+                      - { label: "Social / Party", value: social }
+
+  # ── DONATION TIERS ────────────────────────────────────────
+  - name: donate
+    label: "💛 Donation Tiers"
+    files:
+      - label: "Donation Tiers"
+        name: tiers
+        file: src/content/donate/tiers.json
+        fields:
+          - label: "Intro Text"
+            name: intro
+            widget: text
+            hint: "The sentence or two above the donation tiers"
+
+          - label: "Tiers"
+            name: tiers
+            widget: list
+            label_singular: "Tier"
+            fields:
+              - label: "Monthly Amount ($)"
+                name: amount
+                widget: number
+                value_type: int
+
+              - label: "Tier Name"
+                name: name
+                widget: string
+                hint: "e.g. Signal Sustainer, Broadcast Partner"
+
+              - label: "Featured (highlighted)"
+                name: featured
+                widget: boolean
+                default: false
+                hint: "Turn on for the most prominent tier"

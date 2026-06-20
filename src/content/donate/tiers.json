@@ -1,0 +1,8 @@
+{
+  "intro": "WPNX runs on community support. Every dollar goes directly to keeping the transmitter on and the airwaves free for Pensacola.",
+  "tiers": [
+    { "amount": 10, "name": "Signal Sustainer", "featured": false },
+    { "amount": 25, "name": "Broadcast Partner", "featured": true },
+    { "amount": 50, "name": "Station Builder",   "featured": false }
+  ]
+}

@@ -1,0 +1,97 @@
+---
+const links = [
+  { href: '#listen',      label: 'Listen'      },
+  { href: '#grc',         label: 'GRC 2026'    },
+  { href: '#schedule',    label: 'Schedule'    },
+  { href: '#shows',       label: 'Shows'       },
+  { href: '#participate', label: 'Participate' },
+  { href: '#donate',      label: 'Donate'      },
+  { href: '#about',       label: 'About'       },
+];
+---
+
+<footer class="footer">
+  <p class="footer__wordmark">WPNX 107.7 FM</p>
+  <p class="footer__sub">Free Radio Pensacola — Community Radio in Formation</p>
+  <nav aria-label="Footer navigation">
+    <ul class="footer__links" role="list">
+      {links.map(link => (
+        <li><a href={link.href} class="footer__link">{link.label}</a></li>
+      ))}
+    </ul>
+  </nav>
+  <p class="footer__copy">
+    © {new Date().getFullYear()} Free Radio Pensacola · Keep it free.
+  </p>
+</footer>
+
+<style>
+  .footer {
+    background: var(--color-ink);
+    color: var(--color-paper);
+    padding: var(--space-xl);
+    text-align: center;
+    border-top: 3px solid var(--color-red);
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .footer__wordmark {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    letter-spacing: 0.05em;
+    color: var(--color-red);
+    margin-bottom: var(--space-xs);
+  }
+
+  .footer__sub {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: var(--space-md);
+  }
+
+  .footer__links {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+    flex-wrap: wrap;
+    list-style: none;
+    margin-bottom: var(--space-lg);
+    padding: 0;
+  }
+
+  .footer__link {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #999;
+    transition: color var(--transition-fast);
+  }
+
+  .footer__link:hover,
+  .footer__link:focus-visible {
+    color: var(--color-red);
+  }
+
+  .footer__copy {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    color: #555;
+  }
+
+  @media (max-width: 480px) {
+    .footer__links {
+      gap: var(--space-md);
+    }
+
+    .footer__link {
+      font-size: 0.58rem;
+    }
+  }
+</style>

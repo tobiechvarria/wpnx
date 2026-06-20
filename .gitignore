@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.wrangler/
+
+# local-only scratch/source archives, not part of the deployed site
+*.zip
+wpnx-astro-source/
+.claude/
+.idea/

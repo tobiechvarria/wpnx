@@ -1,0 +1,345 @@
+---
+interface Props {
+  id: string;
+  show: string;
+  host?: string;
+  episode: string;
+  src?: string;
+  index: number;
+}
+
+const { id, show, host, episode, src, index } = Astro.props;
+const hasAudio = Boolean(src);
+const rowId = `show-${index}`;
+---
+
+<div class="show-row" id={rowId} data-src={src || ''}>
+  <!-- Static HTML — works without JS (progressive enhancement) -->
+  <div class="show-row__top">
+    <span class="show-row__num" aria-hidden="true">{id}</span>
+    <div class="show-row__meta">
+      <p class="show-row__name">
+        {show}
+        {host && <span class="show-row__host">{host}</span>}
+      </p>
+      <p class="show-row__ep">{episode}</p>
+    </div>
+    <div class="show-row__action">
+      {hasAudio
+        ? (
+          <button
+            class="show-row__btn"
+            aria-label={`Play ${show} — ${episode}`}
+            data-play-btn
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="show-row__icon show-row__icon--play">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="show-row__icon show-row__icon--pause" style="display:none">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+          </button>
+        )
+        : (
+          <span class="show-row__badge">Coming Soon</span>
+        )
+      }
+    </div>
+  </div>
+
+  {hasAudio && (
+    <div class="show-row__tray" aria-hidden="true" data-tray>
+      <p class="show-row__tray-track">◉ Now Playing — {episode}</p>
+      <div class="show-row__tray-controls">
+        <span class="show-row__tray-time" data-time>0:00</span>
+        <div class="show-row__tray-progress" data-progress-wrap>
+          <div class="show-row__tray-fill" data-progress-fill></div>
+        </div>
+        <span class="show-row__tray-dur" data-duration>--:--</span>
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  .show-row {
+    border-bottom: 1px solid var(--color-paper-alt);
+    transition: background var(--transition-fast);
+  }
+
+  .show-row:hover {
+    background: var(--color-paper-alt);
+  }
+
+  /* ── Top row ── */
+  .show-row__top {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: var(--space-md);
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    cursor: default;
+    user-select: none;
+  }
+
+  .show-row__top[data-clickable] {
+    cursor: pointer;
+  }
+
+  .show-row__num {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--color-muted);
+    text-align: right;
+  }
+
+  .show-row__name {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+  }
+
+  .show-row__host {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--color-muted);
+    margin-left: var(--space-xs);
+  }
+
+  .show-row__ep {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--color-muted);
+    margin-top: 2px;
+  }
+
+  /* ── Play button ── */
+  .show-row__btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-rule);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+    flex-shrink: 0;
+    color: var(--color-ink);
+  }
+
+  .show-row__btn:hover,
+  .show-row__btn.is-playing {
+    background: var(--color-red);
+    border-color: var(--color-red);
+    color: #fff;
+  }
+
+  .show-row__btn:focus-visible {
+    outline: 3px solid var(--color-red);
+    outline-offset: 2px;
+  }
+
+  .show-row__icon {
+    width: 11px;
+    height: 11px;
+    fill: currentColor;
+    pointer-events: none;
+  }
+
+  .show-row__badge {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    color: var(--color-muted);
+    border: 1px dashed var(--color-rule);
+    padding: 0.15rem 0.4rem;
+    white-space: nowrap;
+  }
+
+  /* ── Tray ── */
+  .show-row__tray {
+    display: none;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    padding: var(--space-sm) var(--space-md) var(--space-sm) 3.5rem;
+  }
+
+  .show-row__tray.is-open {
+    display: block;
+  }
+
+  .show-row__tray-track {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-red);
+    margin-bottom: var(--space-xs);
+  }
+
+  .show-row__tray-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .show-row__tray-time,
+  .show-row__tray-dur {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: #666;
+    white-space: nowrap;
+    min-width: 4ch;
+  }
+
+  .show-row__tray-dur {
+    text-align: right;
+  }
+
+  .show-row__tray-progress {
+    flex: 1;
+    height: 3px;
+    background: #333;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .show-row__tray-fill {
+    height: 100%;
+    background: var(--color-red);
+    width: 0%;
+    pointer-events: none;
+    transition: width 0.1s linear;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    .show-row__top {
+      grid-template-columns: 1.5rem 1fr auto;
+      gap: var(--space-xs);
+      padding: var(--space-xs) var(--space-sm);
+    }
+
+    .show-row__name {
+      font-size: 0.95rem;
+    }
+
+    .show-row__ep {
+      font-size: 0.6rem;
+    }
+
+    .show-row__tray {
+      padding-left: var(--space-xl);
+    }
+  }
+</style>
+
+<script>
+  // Progressive enhancement — only runs if JS available
+  // Uses unique index-based IDs, not URL slices (fixes review issue #11)
+  document.querySelectorAll<HTMLElement>('.show-row').forEach((row, index) => {
+    const src = row.dataset.src;
+    if (!src) return;
+
+    const btn       = row.querySelector<HTMLButtonElement>('[data-play-btn]');
+    const tray      = row.querySelector<HTMLElement>('[data-tray]');
+    const top       = row.querySelector<HTMLElement>('.show-row__top');
+    const timeEl    = row.querySelector<HTMLElement>('[data-time]');
+    const durEl     = row.querySelector<HTMLElement>('[data-duration]');
+    const fillEl    = row.querySelector<HTMLElement>('[data-progress-fill]');
+    const progressWrap = row.querySelector<HTMLElement>('[data-progress-wrap]');
+    const iconPlay  = btn?.querySelector('.show-row__icon--play');
+    const iconPause = btn?.querySelector('.show-row__icon--pause');
+
+    if (!btn || !tray || !timeEl || !durEl || !fillEl) return;
+
+    const audio = new Audio();
+    audio.preload = 'none'; // Only load when user plays
+
+    function fmtTime(s: number): string {
+      if (!isFinite(s)) return '--:--';
+      const m  = Math.floor(s / 60);
+      const ss = Math.floor(s % 60).toString().padStart(2, '0');
+      return `${m}:${ss}`;
+    }
+
+    // Active audio singleton — stored on window to share across instances
+    const win = window as any;
+
+    function stopActive(): void {
+      if (win.__activeAudio && win.__activeAudio !== audio) {
+        win.__activeAudio.pause();
+        win.__activeRow?.querySelector('[data-play-btn]')?.classList.remove('is-playing');
+        win.__activeRow?.querySelector('.show-row__icon--play')
+          && ((win.__activeRow.querySelector('.show-row__icon--play') as HTMLElement).style.display = '');
+        win.__activeRow?.querySelector('.show-row__icon--pause')
+          && ((win.__activeRow.querySelector('.show-row__icon--pause') as HTMLElement).style.display = 'none');
+        win.__activeTray?.classList.remove('is-open');
+        win.__activeTray?.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function setPlaying(playing: boolean): void {
+      btn.classList.toggle('is-playing', playing);
+      if (iconPlay) (iconPlay as HTMLElement).style.display = playing ? 'none' : '';
+      if (iconPause) (iconPause as HTMLElement).style.display = playing ? '' : 'none';
+      btn.setAttribute('aria-label', playing ? 'Pause episode' : 'Play episode');
+      tray.classList.toggle('is-open', playing);
+      tray.setAttribute('aria-hidden', playing ? 'false' : 'true');
+    }
+
+    audio.addEventListener('loadedmetadata', () => {
+      durEl.textContent = fmtTime(audio.duration);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      timeEl.textContent = fmtTime(audio.currentTime);
+      if (audio.duration) {
+        fillEl.style.width = ((audio.currentTime / audio.duration) * 100).toFixed(2) + '%';
+      }
+    });
+
+    audio.addEventListener('ended', () => {
+      setPlaying(false);
+      win.__activeAudio = null;
+      win.__activeRow   = null;
+      win.__activeTray  = null;
+    });
+
+    progressWrap?.addEventListener('click', (e: MouseEvent) => {
+      if (!audio.duration) return;
+      const rect = progressWrap.getBoundingClientRect();
+      audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+    });
+
+    btn.addEventListener('click', (e: Event) => {
+      e.stopPropagation();
+      const isThisPlaying = win.__activeAudio === audio && !audio.paused;
+
+      if (isThisPlaying) {
+        audio.pause();
+        setPlaying(false);
+      } else {
+        stopActive();
+        if (!audio.src) audio.src = src;
+        audio.play().catch(() => {});
+        setPlaying(true);
+        win.__activeAudio = audio;
+        win.__activeRow   = row;
+        win.__activeTray  = tray;
+      }
+    });
+
+    // Make the row title area clickable too
+    if (top) {
+      top.setAttribute('data-clickable', '');
+      top.addEventListener('click', () => btn.click());
+    }
+  });
+</script>

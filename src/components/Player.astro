@@ -1,0 +1,290 @@
+---
+// Player.astro — KLF looping audio player
+// Audio src is set by JS on play to avoid preloading 3.3MB on page load
+const TRACK = 'The KLF — Elvis On The Radio, Steel Guitar In My Soul';
+const SRC   = '/the-klf-elvis-on-the-radio.mp3';
+---
+
+<div class="player" id="player">
+  <p class="player__label">
+    <span class="player__dot" aria-hidden="true"></span>
+    Live Stream
+  </p>
+  <p class="player__freq" aria-label="107.7 FM">107.7</p>
+  <p class="player__station">WPNX — Free Radio Pensacola</p>
+
+  <div class="player__controls">
+    <!-- audio element — src set by JS only when user hits play (saves mobile data) -->
+    <audio id="klfAudio" loop preload="none" aria-label={TRACK}></audio>
+
+    <button class="player__btn" id="klfBtn" aria-label="Play">
+      <svg class="player__icon player__icon--play" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+      <svg class="player__icon player__icon--pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:none">
+        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+      </svg>
+    </button>
+
+    <div class="player__info">
+      <p class="player__track" id="klfTrack">{TRACK}</p>
+      <p class="player__status" id="klfStatus" aria-live="polite">Click to play · Loops continuously</p>
+    </div>
+
+    <div class="player__vol" aria-label="Volume control">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="player__vol-icon">
+        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+      </svg>
+      <input
+        type="range"
+        class="player__vol-slider"
+        id="klfVol"
+        min="0"
+        max="1"
+        step="0.05"
+        value="0.8"
+        aria-label="Volume"
+      />
+    </div>
+  </div>
+</div>
+
+<style>
+  .player {
+    border: 2px solid var(--color-ink);
+    background: var(--color-ink);
+    color: var(--color-paper);
+    padding: var(--space-lg);
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .player__label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-red);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .player__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-red);
+    flex-shrink: 0;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.2; }
+  }
+
+  .player__freq {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    color: var(--color-red);
+    margin-bottom: var(--space-2xs);
+  }
+
+  .player__station {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #888;
+    margin-bottom: var(--space-md);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Controls row ── */
+  .player__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .player__btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--color-red);
+    background: transparent;
+    color: var(--color-red);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--transition-fast), color var(--transition-fast);
+  }
+
+  .player__btn:hover,
+  .player__btn.is-playing {
+    background: var(--color-red);
+    color: #fff;
+  }
+
+  .player__btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+  }
+
+  .player__icon {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+
+  .player__info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .player__track {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--color-paper);
+    min-width: 0;
+  }
+
+  .player__status {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: #888;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Volume ── */
+  .player__vol {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    flex-shrink: 0;
+  }
+
+  .player__vol-icon {
+    width: 14px;
+    height: 14px;
+    fill: #666;
+    flex-shrink: 0;
+  }
+
+  .player__vol-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 60px;
+    height: 2px;
+    background: #333;
+    cursor: pointer;
+    outline: none;
+    border-radius: 1px;
+  }
+
+  .player__vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-red);
+    cursor: pointer;
+  }
+
+  .player__vol-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-red);
+    cursor: pointer;
+    border: none;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .player {
+      padding: var(--space-md);
+    }
+
+    .player__freq {
+      font-size: 2rem;
+    }
+
+    .player__vol {
+      display: none; /* restore via desktop only */
+    }
+  }
+
+  @media (min-width: 901px) {
+    .player__vol {
+      display: flex;
+    }
+  }
+</style>
+
+<script define:vars={{ SRC }}>
+  (function () {
+    const audio   = document.getElementById('klfAudio');
+    const btn     = document.getElementById('klfBtn');
+    const statusEl = document.getElementById('klfStatus');
+    const volSlider = document.getElementById('klfVol');
+    const iconPlay  = btn.querySelector('.player__icon--play');
+    const iconPause = btn.querySelector('.player__icon--pause');
+
+    // Set initial volume without triggering a load
+    audio.volume = parseFloat(volSlider.value);
+
+    function setPlaying(playing) {
+      btn.classList.toggle('is-playing', playing);
+      iconPlay.style.display  = playing ? 'none' : '';
+      iconPause.style.display = playing ? ''     : 'none';
+      btn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+      statusEl.textContent = playing
+        ? 'Now playing · Loops continuously'
+        : 'Click to play · Loops continuously';
+    }
+
+    btn.addEventListener('click', function () {
+      if (audio.paused) {
+        // Only set src on first play — avoids loading 3.3MB on page load
+        if (!audio.src) {
+          audio.src = SRC;
+        }
+        audio.play().catch(function () {
+          statusEl.textContent = 'Could not load audio';
+        });
+      } else {
+        audio.pause();
+      }
+    });
+
+    audio.addEventListener('playing', function () { setPlaying(true); });
+    audio.addEventListener('pause',   function () { setPlaying(false); });
+    audio.addEventListener('error',   function () {
+      statusEl.textContent = 'Could not load audio';
+      setPlaying(false);
+    });
+
+    volSlider.addEventListener('input', function () {
+      audio.volume = parseFloat(volSlider.value);
+    });
+  })();
+</script>

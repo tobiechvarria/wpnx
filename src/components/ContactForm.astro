@@ -1,0 +1,339 @@
+---
+---
+<section class="form-section" aria-labelledby="form-title">
+  <h2 class="form-section__title" id="form-title">Contact + Sign Up</h2>
+  <p class="form-section__sub">Volunteer · Show proposals · GRC 2026 · General inquiries</p>
+
+  <form
+    id="contactForm"
+    action="https://formspree.io/f/YOUR_FORM_ID"
+    method="POST"
+    novalidate
+    aria-describedby="form-errors"
+  >
+    <div id="form-errors" role="alert" aria-live="polite" class="form-section__errors" hidden></div>
+
+    <div class="form-section__row">
+      <div class="form-section__field">
+        <label for="fname">First Name <span aria-hidden="true">*</span></label>
+        <input type="text" id="fname" name="fname" autocomplete="given-name" required />
+      </div>
+      <div class="form-section__field">
+        <label for="lname">Last Name <span aria-hidden="true">*</span></label>
+        <input type="text" id="lname" name="lname" autocomplete="family-name" required />
+      </div>
+    </div>
+
+    <div class="form-section__row">
+      <div class="form-section__field">
+        <label for="email">Email Address <span aria-hidden="true">*</span></label>
+        <input type="email" id="email" name="email" autocomplete="email" required />
+      </div>
+      <div class="form-section__field">
+        <label for="location">City / Where You're From</label>
+        <input type="text" id="location" name="location" autocomplete="address-level2" />
+      </div>
+    </div>
+
+    <div class="form-section__field">
+      <fieldset class="form-section__fieldset">
+        <legend>I'm interested in:</legend>
+        <div class="form-section__checks">
+          <label class="form-section__check">
+            <input type="checkbox" name="interest" value="volunteer" />
+            Volunteering at WPNX
+          </label>
+          <label class="form-section__check">
+            <input type="checkbox" name="interest" value="show" />
+            Proposing a radio show
+          </label>
+          <label class="form-section__check">
+            <input type="checkbox" name="interest" value="grc" />
+            Attending GRC 2026
+          </label>
+          <label class="form-section__check">
+            <input type="checkbox" name="interest" value="sponsor" />
+            Sponsoring the conference
+          </label>
+          <label class="form-section__check">
+            <input type="checkbox" name="interest" value="listen" />
+            Listener updates only
+          </label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="form-section__field form-section__field--full">
+      <label for="message">Message / Show Idea</label>
+      <textarea id="message" name="message" rows="4"></textarea>
+    </div>
+
+    <div class="form-section__footer">
+      <button type="submit" class="btn btn--primary">Send Message</button>
+      <a href="mailto:info@freeradiopensacola.com" class="form-section__email">
+        info@freeradiopensacola.com
+      </a>
+    </div>
+  </form>
+
+  <div class="form-section__success" id="formSuccess" role="alert" hidden>
+    ✓ Message received — we'll be in touch. Keep it free.
+  </div>
+</section>
+
+<style>
+  .form-section {
+    background: var(--color-paper-alt);
+    border: 2px solid var(--color-ink);
+    padding: var(--space-xl);
+    margin-top: var(--space-2xl);
+  }
+
+  .form-section__title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 0.02em;
+    margin-bottom: var(--space-xs);
+  }
+
+  .form-section__sub {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-bottom: var(--space-xl);
+  }
+
+  .form-section__errors {
+    background: #fff0f0;
+    border: 1.5px solid var(--color-red);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--color-red);
+  }
+
+  .form-section__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .form-section__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+  }
+
+  .form-section__field--full {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  input[type="text"],
+  input[type="email"],
+  textarea {
+    width: 100%;
+    background: var(--color-paper);
+    border: 1.5px solid var(--color-ink);
+    color: var(--color-ink);
+    font-family: var(--font-serif);
+    font-size: 1rem; /* ≥16px prevents iOS zoom */
+    padding: 0.55rem 0.75rem;
+    outline: none;
+    transition: border-color var(--transition-fast);
+    border-radius: var(--radius-sm);
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  input:focus,
+  textarea:focus {
+    border-color: var(--color-red);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: var(--font-serif);
+  }
+
+  /* ── Fieldset ── */
+  .form-section__fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 var(--space-md);
+  }
+
+  .form-section__fieldset legend {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-bottom: var(--space-xs);
+    float: left;
+    width: 100%;
+  }
+
+  .form-section__checks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+    clear: both;
+  }
+
+  .form-section__check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    color: var(--color-ink);
+  }
+
+  input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--color-ink);
+    background: var(--color-paper);
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background var(--transition-fast);
+  }
+
+  input[type="checkbox"]:checked {
+    background: var(--color-red);
+    border-color: var(--color-red);
+  }
+
+  input[type="checkbox"]:focus-visible {
+    outline: 3px solid var(--color-red);
+    outline-offset: 2px;
+  }
+
+  /* ── Footer ── */
+  .form-section__footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
+  .form-section__email {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    letter-spacing: 0.04em;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ── Success state ── */
+  .form-section__success {
+    background: #1a3a1f;
+    border: 2px solid #4a9a54;
+    color: #a8e6ad;
+    padding: var(--space-md) var(--space-lg);
+    margin-top: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .form-section {
+      padding: var(--space-lg);
+    }
+
+    .form-section__row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .form-section {
+      padding: var(--space-md);
+      margin-top: var(--space-xl);
+    }
+
+    .form-section__title {
+      font-size: 1.6rem;
+    }
+
+    .form-section__footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .form-section__footer .btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  const form       = document.getElementById('contactForm') as HTMLFormElement;
+  const errorsEl   = document.getElementById('form-errors') as HTMLElement;
+  const successEl  = document.getElementById('formSuccess') as HTMLElement;
+
+  form?.addEventListener('submit', async (e: Event) => {
+    e.preventDefault();
+
+    const fname = (form.elements.namedItem('fname') as HTMLInputElement).value.trim();
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+    const errors: string[] = [];
+
+    if (!fname) errors.push('First name is required.');
+    if (!email) errors.push('Email address is required.');
+    else if (!/^\S+@\S+\.\S+$/.test(email)) errors.push('Please enter a valid email address.');
+
+    if (errors.length > 0) {
+      errorsEl.textContent = errors.join(' ');
+      errorsEl.hidden = false;
+      errorsEl.focus();
+      return;
+    }
+
+    errorsEl.hidden = true;
+
+    try {
+      const data = new FormData(form);
+      const res  = await fetch(form.action, {
+        method: 'POST',
+        body: data,
+        headers: { Accept: 'application/json' },
+      });
+
+      if (res.ok) {
+        form.hidden    = true;
+        successEl.hidden = false;
+      } else {
+        errorsEl.textContent = 'Something went wrong. Please try again or email us directly.';
+        errorsEl.hidden = false;
+      }
+    } catch {
+      errorsEl.textContent = 'Could not send — please email info@freeradiopensacola.com directly.';
+      errorsEl.hidden = false;
+    }
+  });
+</script>

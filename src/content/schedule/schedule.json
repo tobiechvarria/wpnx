@@ -1,0 +1,33 @@
+[
+  {
+    "day": "Thursday",
+    "date": "September 24",
+    "label": "Day 1",
+    "events": [
+      { "time": "Evening", "name": "Conference Opening + Exhibition", "type": "keynote" },
+      { "time": "Evening", "name": "Keynote Address", "type": "keynote" },
+      { "time": "Evening", "name": "Film Screening", "type": "screening" },
+      { "time": "Evening", "name": "Meet & Greet", "type": "social" }
+    ]
+  },
+  {
+    "day": "Friday",
+    "date": "September 25",
+    "label": "Day 2",
+    "events": [
+      { "time": "All Day", "name": "Workshops + Sessions", "type": "workshop" },
+      { "time": "Evening", "name": "Hot Pepper / 9 Lives of Barbara Dane + Q&A w/ Maureen Gosling", "type": "screening" },
+      { "time": "Evening", "name": "Performance by Leyla", "type": "performance" }
+    ]
+  },
+  {
+    "day": "Saturday",
+    "date": "September 26",
+    "label": "Day 3",
+    "events": [
+      { "time": "All Day", "name": "Workshops + Open Sessions", "type": "workshop" },
+      { "time": "Sunset", "name": "Quintron — Weather Warlock Set", "type": "performance" },
+      { "time": "Night", "name": "Closing Party — Bands + DJs", "type": "social" }
+    ]
+  }
+]

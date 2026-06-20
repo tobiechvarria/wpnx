@@ -1,0 +1,19 @@
+{
+  "year": 2026,
+  "edition": "30th Annual",
+  "startDate": "September 24, 2026",
+  "endDate": "September 26, 2026",
+  "bannerText": "Grassroots Radio Conference 2026 — Sept 24–26, Pensacola, FL",
+  "description": "Free Radio Pensacola and WPNX host the 30th Annual Grassroots Radio Conference — September 24–26, 2026. A national gathering for station builders, engineers, programmers, organizers, artists, and listeners.",
+  "focusAreas": [
+    "Station building + LPFM operations",
+    "Programming + independent media",
+    "Community engagement + local storytelling",
+    "Technical training — broadcast + streaming",
+    "Cultural programming + public events"
+  ],
+  "earlyBirdPrice": 150,
+  "earlyBirdEnd": "July 31, 2026",
+  "generalPrice": 195,
+  "registrationOpens": "2026-07-01T00:00:00"
+}

@@ -1,0 +1,331 @@
+---
+import Layout    from '../layouts/Layout.astro';
+import Nav       from '../components/Nav.astro';
+import GRCBanner from '../components/GRCBanner.astro';
+import Hero      from '../components/Hero.astro';
+import Countdown from '../components/Countdown.astro';
+import ShowRow   from '../components/ShowRow.astro';
+import ContactForm from '../components/ContactForm.astro';
+import Footer    from '../components/Footer.astro';
+
+import schedule  from '../content/schedule/schedule.json';
+import station   from '../content/settings/station.json';
+import grc       from '../content/grc/grc.json';
+import donateCfg from '../content/donate/tiers.json';
+
+// Load all individual show files and sort by id
+// import.meta.glob with import:'default' returns the default export of each JSON module
+const rawShows   = import.meta.glob('../content/shows/*.json', { eager: true, import: 'default' });
+const shows: any[] = Object.values(rawShows).sort(
+  (a: any, b: any) => String(a.id).localeCompare(String(b.id))
+);
+
+const eventTypeClass = {
+  keynote:     'day-event--keynote',
+  screening:   'day-event--screening',
+  workshop:    'day-event--workshop',
+  performance: 'day-event--performance',
+  social:      'day-event--social',
+};
+---
+
+<Layout>
+  <Nav />
+  <GRCBanner bannerText={grc.bannerText} />
+
+  <main id="main-content">
+
+    <Hero tagline={station.tagline} heroBody={station.heroBody} />
+
+    <!-- GRC -->
+    <section class="section" id="grc" aria-labelledby="grc-title">
+      <div class="section__inner">
+        <header class="section__header">
+          <span class="section__num">03 / GRC</span>
+          <h2 class="section__title" id="grc-title">Grassroots Radio <em>Conference</em></h2>
+        </header>
+        <div class="grc-grid">
+          <div class="grc-grid__main">
+            <p set:html={grc.description.replace(/30th Annual Grassroots Radio Conference/, `<strong>${grc.edition} Grassroots Radio Conference</strong>`)}></p>
+            <blockquote class="grc-quote">"Not a trade show. A working space for community radio practice."</blockquote>
+            <ul class="focus-list">
+              {grc.focusAreas.map(area => <li>{area}</li>)}
+            </ul>
+            <div id="grc-tickets" class="tickets">
+              <p class="tickets__heading">Registration</p>
+              <div class="ticket-tiers">
+                <div class="ticket-tier ticket-tier--early">
+                  <div class="ticket-tier__flag">Early Bird</div>
+                  <div class="ticket-tier__inner">
+                    <span class="ticket-tier__price">${grc.earlyBirdPrice}</span>
+                    <div>
+                      <p class="ticket-tier__name">Early Bird</p>
+                      <p class="ticket-tier__window">July 1 – {grc.earlyBirdEnd}</p>
+                      <p class="ticket-tier__includes">All sessions · Screenings · Evening events</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="ticket-tier">
+                  <div class="ticket-tier__flag">General</div>
+                  <div class="ticket-tier__inner">
+                    <span class="ticket-tier__price">${grc.generalPrice}</span>
+                    <div>
+                      <p class="ticket-tier__name">General Registration</p>
+                      <p class="ticket-tier__window">Aug 1 – Sept 24, 2026</p>
+                      <p class="ticket-tier__includes">All sessions · Screenings · Evening events</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Countdown targetDate={grc.registrationOpens} label={`Opens ${new Date(grc.registrationOpens).toLocaleDateString('en-US', {month:'long', day:'numeric'})} via Zeffy — $0 platform fees`} />
+              <div class="embed-placeholder">
+                <p class="embed-placeholder__label">Zeffy Ticketing Embed</p>
+                <p class="embed-placeholder__note">Paste Zeffy iframe here after creating your ticketing campaign.</p>
+              </div>
+            </div>
+          </div>
+          <aside class="grc-grid__side">
+            <div class="info-card">
+              <p class="info-card__label">Dates</p>
+              <p class="info-card__val"><strong>September 24–26, 2026</strong></p>
+              <p class="info-card__sub">Three days of workshops, screenings, and performances.</p>
+            </div>
+            <div class="info-card">
+              <p class="info-card__label">Location</p>
+              <p class="info-card__val"><strong>Voices of Pensacola</strong></p>
+              <address class="info-card__sub">117 E Government St<br />Downtown Pensacola, FL 32502</address>
+            </div>
+            <div class="info-card">
+              <p class="info-card__label">Who Should Attend</p>
+              <ul class="focus-list" style="margin-top:0.5rem;">
+                <li>Community radio stations + LPFM operators</li>
+                <li>Podcasters + indie media producers</li>
+                <li>Artists working with sound + transmission</li>
+                <li>Community organizers + educators</li>
+              </ul>
+            </div>
+            <div class="info-card info-card--dark">
+              <p class="info-card__label">Register Now</p>
+              <p>Space is limited. $0 fees via Zeffy.</p>
+              <a href="#grc-tickets" class="btn btn--signal" style="margin-top:1rem;display:inline-block;">See Tickets ↓</a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section class="section" id="schedule" aria-labelledby="schedule-title">
+      <div class="section__inner">
+        <header class="section__header">
+          <span class="section__num">04 / Schedule</span>
+          <h2 class="section__title" id="schedule-title">Weekend <em>Schedule</em></h2>
+        </header>
+        <div class="schedule-grid">
+          {schedule.map(day => (
+            <div class="day-card">
+              <div class="day-card__header">
+                <p class="day-card__name">{day.day}</p>
+                <p class="day-card__date">{day.date} — {day.label}</p>
+              </div>
+              <ul class="day-card__events">
+                {day.events.map(event => (
+                  <li class:list={['day-event', eventTypeClass[event.type]]}>
+                    <p class="day-event__time">{event.time}</p>
+                    <p class="day-event__name">{event.name}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- SHOWS -->
+    <section class="section" id="shows" aria-labelledby="shows-title">
+      <div class="section__inner">
+        <header class="section__header">
+          <span class="section__num">05 / Shows</span>
+          <h2 class="section__title" id="shows-title">On Demand <em>Programs</em></h2>
+        </header>
+        <p class="shows-intro">Programming from Radio Free Pensacola. Shows expand as WPNX grows through participation.</p>
+        <div class="shows-list">
+          {shows.map((show, showIndex) => (
+            <ShowRow id={show.id} show={show.show} host={show.host} episode={show.episode} src={show.src} index={showIndex} />
+          ))}
+        </div>
+        <div style="margin-top:2rem;">
+          <a href="#participate" class="btn btn--primary">Submit a Show Proposal</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARTICIPATE -->
+    <section class="section" id="participate" aria-labelledby="participate-title">
+      <div class="section__inner">
+        <header class="section__header">
+          <span class="section__num">06 / Participate</span>
+          <h2 class="section__title" id="participate-title">Get <em>Involved</em></h2>
+        </header>
+        <div class="part-grid">
+          <div class="part-block">
+            <p class="part-block__icon">V</p>
+            <h3 class="part-block__title">Volunteer</h3>
+            <p class="part-block__desc">Support station operations, events, programming, and outreach. No prior radio experience required.</p>
+            <ul class="part-block__list"><li>Studio support</li><li>Event assistance</li><li>Archiving + documentation</li><li>Community outreach</li></ul>
+          </div>
+          <div class="part-block">
+            <p class="part-block__icon">S</p>
+            <h3 class="part-block__title">Propose a Show</h3>
+            <p class="part-block__desc">Music, conversation, experimental sound, interviews — we want to hear your idea.</p>
+            <ul class="part-block__list"><li>Music programming</li><li>Talk + interview shows</li><li>Experimental sound art</li><li>Cultural programs</li></ul>
+          </div>
+          <div class="part-block">
+            <p class="part-block__icon">E</p>
+            <h3 class="part-block__title">Education</h3>
+            <p class="part-block__desc">Hands-on learning in radio production and transmission. GRC 2026 is the first major opportunity.</p>
+            <ul class="part-block__list"><li>Radio production workshops</li><li>Broadcast + streaming training</li><li>GRC 2026 conference</li></ul>
+          </div>
+        </div>
+        <ContactForm />
+      </div>
+    </section>
+
+    <!-- DONATE -->
+    <section class="section" id="donate" aria-labelledby="donate-title">
+      <div class="section__inner">
+        <header class="section__header">
+          <span class="section__num">08 / Support</span>
+          <h2 class="section__title" id="donate-title">Support the <em>Station</em></h2>
+        </header>
+        <div class="donate-grid">
+          <div>
+            <p>{donateCfg.intro}</p>
+            <div class="donate-tiers">
+              {donateCfg.tiers.map(tier => (
+                <div class:list={['donate-tier', { 'donate-tier--featured': tier.featured }]}>
+                  <span class="donate-tier__amount">${tier.amount}</span>
+                  <div>
+                    <p class="donate-tier__name">{tier.name}</p>
+                    <p class="donate-tier__period">/month{tier.featured ? ' · Most Impactful' : ''}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p class="donate-note">Powered by Zeffy — $0 platform fees. Free Radio Pensacola is a registered nonprofit.</p>
+          </div>
+          <div class="embed-placeholder"><p class="embed-placeholder__label">Zeffy Donation Embed</p><p class="embed-placeholder__note">Paste Zeffy iframe here after creating your donation campaign.</p><a href="https://www.zeffy.com" target="_blank" rel="noopener noreferrer" class="btn" style="margin-top:1rem;">Set Up Zeffy →</a></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section" id="about" aria-labelledby="about-title">
+      <div class="section__inner">
+        <header class="section__header">
+          <span class="section__num">07 / About</span>
+          <h2 class="section__title" id="about-title">About <em>WPNX</em></h2>
+        </header>
+        <div class="about-grid">
+          <div class="about-grid__body">
+            <p>WPNX 107.7 FM is a low-power FM community radio station in formation, broadcasting from the roof of The SCI Building at 220 West Garden Street in Downtown Pensacola. Operated by <strong>Free Radio Pensacola</strong>, a nonprofit focused on community media, independent broadcasting, and public access to the airwaves.</p>
+            <h3>Formation</h3>
+            <p>WPNX is part of a broader effort to rebuild local broadcasting capacity through hands-on participation and shared media practice. Rather than operating as a finished institution, WPNX is a community experiment being developed in public.</p>
+            <h3>Community Participation</h3>
+            <p>Radio as a shared practice. Participation is not limited to broadcasting — it includes listening, contributing, documenting, organizing, and helping shape the cultural life of the station.</p>
+          </div>
+          <aside class="about-grid__side">
+            <div class="sidebar-block"><p class="sidebar-block__label">Transmitter</p><address class="sidebar-block__val">SCI Building<br />220 West Garden St<br />Downtown Pensacola, FL</address></div>
+            <div class="sidebar-block"><p class="sidebar-block__label">GRC Venue</p><address class="sidebar-block__val">Voices of Pensacola<br />117 E Government St<br />Pensacola, FL 32502</address></div>
+            <div class="sidebar-block"><p class="sidebar-block__label">Contact</p><a href="mailto:info@freeradiopensacola.com" class="sidebar-block__link">info@freeradiopensacola.com</a></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+.grc-grid { display:grid; grid-template-columns:1fr 320px; gap:2.5rem; align-items:start; }
+.grc-quote { border-left:4px solid var(--color-red); padding:.6rem 1rem; margin:1.5rem 0; font-style:italic; color:var(--color-muted); background:var(--color-paper-alt); font-size:1.05rem; line-height:1.6; }
+.focus-list { list-style:none; margin-top:1rem; }
+.focus-list li { font-family:var(--font-mono); font-size:.8rem; padding:.5rem 0; border-bottom:1px solid var(--color-paper-alt); display:flex; align-items:center; gap:.75rem; letter-spacing:.04em; }
+.focus-list li::before { content:'→'; color:var(--color-red); flex-shrink:0; }
+.tickets { margin-top:2rem; }
+.tickets__heading { font-family:var(--font-mono); font-size:.65rem; letter-spacing:.2em; text-transform:uppercase; color:var(--color-muted); margin-bottom:1rem; }
+.ticket-tiers { display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem; }
+.ticket-tier { border:2px solid var(--color-ink); position:relative; padding:1rem 1rem 1rem 4.5rem; }
+.ticket-tier--early { border-color:var(--color-red); }
+.ticket-tier__flag { position:absolute; left:0; top:0; bottom:0; width:3.5rem; background:var(--color-ink); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:.75rem; letter-spacing:.08em; color:var(--color-paper); writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg); }
+.ticket-tier--early .ticket-tier__flag { background:var(--color-red); }
+.ticket-tier__inner { display:flex; align-items:center; gap:1.25rem; }
+.ticket-tier__price { font-family:var(--font-display); font-size:2.5rem; line-height:1; flex-shrink:0; }
+.ticket-tier--early .ticket-tier__price { color:var(--color-red); }
+.ticket-tier__name { font-family:var(--font-mono); font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; margin-bottom:.2rem; }
+.ticket-tier__window { font-family:var(--font-mono); font-size:.68rem; color:var(--color-muted); }
+.ticket-tier__includes { font-size:.82rem; color:var(--color-muted); font-style:italic; margin-top:.2rem; }
+.info-card { border:2px solid var(--color-ink); padding:1.25rem; margin-bottom:2px; }
+.info-card--dark { background:var(--color-ink); color:var(--color-paper); }
+.info-card__label { font-family:var(--font-mono); font-size:.62rem; letter-spacing:.15em; text-transform:uppercase; color:var(--color-muted); margin-bottom:.5rem; }
+.info-card--dark .info-card__label { color:#888; }
+.info-card__val { font-size:.95rem; line-height:1.4; margin-bottom:.35rem; }
+.info-card__sub { font-size:.85rem; color:var(--color-muted); line-height:1.6; font-style:normal; }
+.info-card--dark p { color:rgba(255,255,255,.7); }
+.embed-placeholder { border:2px dashed var(--color-rule); padding:2rem; text-align:center; margin-top:1rem; background:var(--color-paper-alt); }
+.embed-placeholder__label { font-family:var(--font-mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--color-muted); margin-bottom:.5rem; }
+.embed-placeholder__note { font-size:.85rem; color:var(--color-muted); font-style:italic; }
+.schedule-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+.day-card { border:2px solid var(--color-ink); overflow:hidden; }
+.day-card__header { background:var(--color-ink); color:var(--color-paper); padding:.75rem 1rem; }
+.day-card__name { font-family:var(--font-display); font-size:1.4rem; letter-spacing:.05em; }
+.day-card__date { font-family:var(--font-mono); font-size:.62rem; letter-spacing:.1em; color:var(--color-red); text-transform:uppercase; margin-top:.2rem; }
+.day-card__events { padding:.75rem; display:flex; flex-direction:column; gap:.5rem; list-style:none; }
+.day-event { padding:.5rem .75rem; border-left:3px solid transparent; background:var(--color-paper-alt); font-size:.85rem; }
+.day-event--keynote,.day-event--screening { border-color:var(--color-red); }
+.day-event--workshop { border-color:#5a8a5f; }
+.day-event--performance { border-color:#7b5ea7; }
+.day-event--social { border-color:var(--color-muted); }
+.day-event__time { font-family:var(--font-mono); font-size:.6rem; letter-spacing:.1em; color:var(--color-muted); text-transform:uppercase; }
+.day-event__name { font-size:.85rem; line-height:1.3; }
+.shows-intro { font-style:italic; color:var(--color-muted); margin-bottom:1.5rem; }
+.shows-list { border-top:2px solid var(--color-ink); }
+.part-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; }
+.part-block__icon { font-family:var(--font-display); font-size:3rem; color:var(--color-red); line-height:1; margin-bottom:.5rem; }
+.part-block__title { font-family:var(--font-display); font-size:1.5rem; letter-spacing:.03em; margin-bottom:.75rem; }
+.part-block__desc { font-size:.9rem; line-height:1.65; color:var(--color-muted); margin-bottom:1rem; }
+.part-block__list { list-style:none; }
+.part-block__list li { font-family:var(--font-mono); font-size:.72rem; padding:.35rem 0; border-bottom:1px solid var(--color-paper-alt); display:flex; gap:.5rem; }
+.part-block__list li::before { content:'·'; color:var(--color-red); }
+.donate-grid { display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; }
+.donate-tiers { display:flex; flex-direction:column; gap:1rem; margin:1.5rem 0; }
+.donate-tier { display:grid; grid-template-columns:auto 1fr; gap:1rem; align-items:center; border:2px solid var(--color-ink); padding:.85rem 1rem; transition:background var(--transition-fast); }
+.donate-tier:hover,.donate-tier--featured { background:var(--color-paper-alt); }
+.donate-tier__amount { font-family:var(--font-display); font-size:2rem; line-height:1; color:var(--color-red); }
+.donate-tier__name { font-family:var(--font-mono); font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; }
+.donate-tier__period { font-family:var(--font-mono); font-size:.68rem; color:var(--color-muted); margin-top:2px; }
+.donate-note { font-family:var(--font-mono); font-size:.68rem; color:var(--color-muted); letter-spacing:.04em; line-height:1.5; }
+.about-grid { display:grid; grid-template-columns:2fr 1fr; gap:2.5rem; }
+.about-grid__body p { line-height:1.8; }
+.about-grid__body p+p { margin-top:1em; }
+.about-grid__body h3 { font-family:var(--font-display); font-size:1.5rem; margin:2rem 0 .75rem; letter-spacing:.03em; }
+.sidebar-block { border:2px solid var(--color-ink); padding:1.25rem; margin-bottom:1rem; }
+.sidebar-block__label { font-family:var(--font-mono); font-size:.62rem; letter-spacing:.15em; text-transform:uppercase; color:var(--color-red); margin-bottom:.75rem; border-bottom:1px solid var(--color-paper-alt); padding-bottom:.5rem; }
+.sidebar-block__val { font-style:normal; font-size:.9rem; line-height:1.7; color:var(--color-muted); }
+.sidebar-block__link { color:var(--color-red); font-family:var(--font-mono); font-size:.8rem; text-decoration:underline; text-underline-offset:3px; }
+
+@media (max-width:900px) {
+  .grc-grid,.donate-grid,.about-grid { grid-template-columns:1fr; }
+  .schedule-grid,.part-grid { grid-template-columns:1fr; }
+  .ticket-tier { padding:2.25rem 1rem 1rem; }
+  .ticket-tier__flag { writing-mode:horizontal-tb; transform:none; position:absolute; top:0; left:0; right:0; bottom:auto; width:100%; height:auto; padding:.3rem .85rem; font-size:.6rem; text-align:left; }
+  .ticket-tier__inner { flex-wrap:wrap; }
+  .donate-tier { grid-template-columns:1fr; }
+}
+@media (max-width:480px) {
+  .ticket-tier__inner { flex-direction:column; gap:.4rem; }
+  .ticket-tier__price { font-size:2rem; }
+}
+</style>

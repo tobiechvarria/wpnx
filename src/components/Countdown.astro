@@ -1,0 +1,110 @@
+---
+interface Props {
+  targetDate: string; // ISO date string
+  label?: string;
+}
+const { targetDate, label = 'Registration opens' } = Astro.props;
+---
+
+<div class="countdown" aria-label="Countdown to registration opening">
+  <div class="countdown__block">
+    <span class="countdown__num" id="cdDays" aria-label="days">--</span>
+    <label class="countdown__label" for="cdDays">Days</label>
+  </div>
+  <span class="countdown__sep" aria-hidden="true">:</span>
+  <div class="countdown__block">
+    <span class="countdown__num" id="cdHours" aria-label="hours">--</span>
+    <label class="countdown__label" for="cdHours">Hours</label>
+  </div>
+  <span class="countdown__sep" aria-hidden="true">:</span>
+  <div class="countdown__block">
+    <span class="countdown__num" id="cdMins" aria-label="minutes">--</span>
+    <label class="countdown__label" for="cdMins">Mins</label>
+  </div>
+</div>
+<p class="countdown__sub">{label}</p>
+
+<style>
+  .countdown {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin: var(--space-md) 0 var(--space-xs);
+  }
+
+  .countdown__block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
+
+  .countdown__num {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    color: var(--color-ink);
+    min-width: 3ch;
+    text-align: center;
+  }
+
+  .countdown__label {
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    cursor: default;
+  }
+
+  .countdown__sep {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-muted);
+    margin-bottom: 1rem;
+    line-height: 1;
+  }
+
+  .countdown__sub {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--color-muted);
+    margin-bottom: var(--space-lg);
+  }
+
+  @media (max-width: 480px) {
+    .countdown__num { font-size: 1.75rem; min-width: 2.5ch; }
+    .countdown__sep { font-size: 1.6rem; }
+  }
+</style>
+
+<script define:vars={{ targetDate }}>
+  (function () {
+    const target  = new Date(targetDate);
+    const daysEl  = document.getElementById('cdDays');
+    const hoursEl = document.getElementById('cdHours');
+    const minsEl  = document.getElementById('cdMins');
+
+    if (!daysEl) return;
+
+    function tick() {
+      const diff = target - Date.now();
+
+      if (diff <= 0) {
+        daysEl.textContent = hoursEl.textContent = minsEl.textContent = '00';
+        clearInterval(intervalId);
+        return;
+      }
+
+      daysEl.textContent  = String(Math.floor(diff / 86400000)).padStart(2, '0');
+      hoursEl.textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+      minsEl.textContent  = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+    }
+
+    // Store interval ID so it can be cleared when countdown reaches zero
+    const intervalId = setInterval(tick, 30000);
+    tick();
+  })();
+</script>

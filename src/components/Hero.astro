@@ -1,0 +1,187 @@
+---
+import Player from './Player.astro';
+
+interface Props {
+  tagline?: string;
+  heroBody?: string;
+}
+
+const DEFAULT_BODY = [
+  'Experiments in sound and transmission begin September 2026. WPNX is a low-power FM community radio station being built in public — through programming, participation, and collaborative events.',
+  'We are not a finished institution. We are a community experiment.',
+].join('\n\n');
+
+const {
+  tagline  = 'Community Radio in Formation',
+  heroBody = DEFAULT_BODY,
+} = Astro.props;
+
+// Split heroBody on double newline for paragraphs
+const paragraphs = heroBody.split(/\n\n+/).filter(Boolean);
+---
+
+<div class="hero">
+  <div class="hero__content">
+    <p class="hero__tag">Free Radio Pensacola</p>
+    <h1 class="hero__title">WPNX<em>107.7</em></h1>
+    <p class="hero__freq">{tagline}</p>
+    <div class="hero__body">
+      {paragraphs.map(p => <p>{p}</p>)}
+    </div>
+    <div class="hero__actions">
+      <a href="#listen" class="btn btn--signal">Listen Live</a>
+      <a href="#grc"    class="btn btn--primary">GRC 2026</a>
+      <a href="#participate" class="btn">Get Involved</a>
+    </div>
+  </div>
+
+  <div class="hero__player" id="listen">
+    <Player />
+  </div>
+</div>
+
+<style>
+  .hero {
+    border-bottom: 3px double var(--color-rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2xl);
+    max-width: var(--max-width);
+    margin-inline: auto;
+    padding: var(--space-3xl) var(--space-xl);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .hero__content {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .hero__tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-red);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .hero__tag::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--color-red);
+    flex-shrink: 0;
+  }
+
+  .hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 10vw, 8rem);
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    margin-bottom: var(--space-xs);
+  }
+
+  .hero__title em {
+    display: block;
+    color: var(--color-red);
+    font-style: normal;
+  }
+
+  .hero__freq {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--color-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-xl);
+    border-left: 4px solid var(--color-red);
+    padding-left: var(--space-sm);
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .hero__body {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--color-ink);
+    max-width: 42ch;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .hero__body p + p {
+    margin-top: 1em;
+  }
+
+  .hero__actions {
+    display: flex;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .hero__player {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    justify-content: flex-start;
+    padding-top: var(--space-md);
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding: var(--space-xl) var(--space-lg);
+      gap: var(--space-xl);
+    }
+
+    .hero__content {
+      overflow: hidden;
+    }
+
+    .hero__body {
+      max-width: 100%;
+      font-size: 1rem;
+    }
+
+    .hero__freq {
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+    }
+
+    .hero__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .hero__actions .btn {
+      width: 100%;
+      display: block;
+    }
+
+    .hero__player {
+      padding-top: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero {
+      padding: var(--space-lg) var(--space-md);
+    }
+
+    .hero__title {
+      font-size: clamp(3rem, 16vw, 5rem);
+    }
+  }
+</style>

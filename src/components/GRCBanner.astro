@@ -1,0 +1,53 @@
+---
+interface Props {
+  bannerText: string;
+}
+const { bannerText } = Astro.props;
+---
+<div class="grc-banner" role="banner" aria-label="Grassroots Radio Conference announcement">
+  <p class="grc-banner__text">{bannerText}</p>
+  <a href="#grc" class="btn grc-banner__btn">Details →</a>
+</div>
+
+<style>
+  .grc-banner {
+    background: var(--color-red);
+    color: #fff;
+    padding: var(--space-sm) var(--space-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    text-align: center;
+    border-bottom: 3px solid var(--color-red-dark);
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .grc-banner__text {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .grc-banner__btn {
+    padding: 0.4rem var(--space-md);
+    border-color: #fff;
+    color: #fff;
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+  .grc-banner__btn:hover,
+  .grc-banner__btn:focus-visible {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+  }
+  @media (max-width: 900px) {
+    .grc-banner { padding: var(--space-sm) var(--space-md); gap: var(--space-sm); }
+  }
+  @media (max-width: 480px) {
+    .grc-banner { padding: var(--space-xs) var(--space-md); }
+    .grc-banner__text { font-size: 0.65rem; }
+  }
+</style>

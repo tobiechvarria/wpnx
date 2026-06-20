@@ -1,0 +1,293 @@
+---
+const links = [
+  { href: '#listen',      label: 'Listen'      },
+  { href: '#grc',         label: 'GRC 2026'    },
+  { href: '#schedule',    label: 'Schedule'    },
+  { href: '#shows',       label: 'Shows'       },
+  { href: '#participate', label: 'Participate' },
+  { href: '#about',       label: 'About'       },
+  { href: '#donate',      label: 'Donate', highlight: true },
+];
+---
+
+<nav class="nav" aria-label="Main navigation">
+  <div class="nav__brand-wrap">
+    <a href="/" class="nav__brand" aria-label="WPNX 107.7 FM — Home">
+      WPNX<span class="nav__freq">107.7 FM</span>
+    </a>
+    <div class="nav__live" aria-label="Station is on air">
+      <span class="nav__live-dot" aria-hidden="true"></span>
+      On Air
+    </div>
+  </div>
+
+  <button
+    class="nav__hamburger"
+    id="navHamburger"
+    aria-label="Open navigation menu"
+    aria-expanded="false"
+    aria-controls="navLinks"
+  >
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+  </button>
+
+  <ul class="nav__links" id="navLinks" role="list">
+    {links.map(link => (
+      <li>
+        <a
+          href={link.href}
+          class:list={['nav__link', { 'nav__link--highlight': link.highlight }]}
+        >
+          {link.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    border-bottom: 3px solid var(--color-red);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-xl);
+    width: 100%;
+    box-sizing: border-box;
+    height: var(--nav-height);
+  }
+
+  /* ── Brand ── */
+  .nav__brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-shrink: 0;
+  }
+
+  .nav__brand {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    color: var(--color-red);
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .nav__freq {
+    color: var(--color-paper);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    margin-left: var(--space-xs);
+    vertical-align: middle;
+  }
+
+  .nav__live {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--color-red);
+    text-transform: uppercase;
+  }
+
+  .nav__live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-red);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.2; }
+  }
+
+  /* ── Links ── */
+  .nav__links {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+
+  .nav__link {
+    display: block;
+    padding: 0.6rem var(--space-md);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-paper);
+    border-left: 1px solid #333;
+    transition: background var(--transition-fast), color var(--transition-fast);
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+  }
+
+  .nav__link:hover,
+  .nav__link.is-active {
+    background: var(--color-red);
+    color: #fff;
+  }
+
+  .nav__link--highlight {
+    color: var(--color-red);
+  }
+
+  /* ── Hamburger — hidden on desktop ── */
+  .nav__hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: var(--space-xs);
+    background: none;
+    border: none;
+    flex-shrink: 0;
+    min-width: 40px;
+    min-height: 40px;
+    margin-left: auto;
+  }
+
+  .nav__hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--color-paper);
+    border-radius: 1px;
+    pointer-events: none;
+    transition: transform var(--transition-base), opacity var(--transition-base);
+  }
+
+  .nav__hamburger[aria-expanded="true"] span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .nav__hamburger[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+  }
+  .nav__hamburger[aria-expanded="true"] span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 900px) {
+    .nav {
+      padding: 0 var(--space-md);
+    }
+
+    .nav__brand {
+      font-size: 1.5rem;
+    }
+
+    .nav__live {
+      font-size: 0.58rem;
+    }
+
+    .nav__hamburger {
+      display: flex;
+    }
+
+    .nav__links {
+      display: none;
+      position: fixed;
+      /* top set by JS to nav bottom */
+      left: 0;
+      right: 0;
+      width: 100%;
+      background: var(--color-ink);
+      flex-direction: column;
+      border-top: 2px solid var(--color-red);
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .nav__links.is-open {
+      display: flex;
+    }
+
+    .nav__link {
+      border-left: none;
+      border-bottom: 1px solid #222;
+      height: auto;
+      padding: var(--space-sm) var(--space-lg);
+      font-size: 0.78rem;
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  const hamburger = document.getElementById('navHamburger') as HTMLButtonElement;
+  const navLinks  = document.getElementById('navLinks') as HTMLUListElement;
+  const nav       = document.querySelector('.nav') as HTMLElement;
+
+  function getNavBottom(): string {
+    return nav.getBoundingClientRect().bottom + 'px';
+  }
+
+  function openMenu(): void {
+    navLinks.style.top = getNavBottom();
+    navLinks.classList.add('is-open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    hamburger.setAttribute('aria-label', 'Close navigation menu');
+  }
+
+  function closeMenu(): void {
+    navLinks.classList.remove('is-open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    hamburger.setAttribute('aria-label', 'Open navigation menu');
+  }
+
+  hamburger.addEventListener('click', (e: Event) => {
+    e.stopPropagation();
+    navLinks.classList.contains('is-open') ? closeMenu() : openMenu();
+  });
+
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', closeMenu);
+  });
+
+  document.addEventListener('click', (e: Event) => {
+    if (!(e.target as Element).closest('.nav')) closeMenu();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) closeMenu();
+  });
+
+  // Scroll spy — highlight active section link
+  const sections = document.querySelectorAll<HTMLElement>('section[id], [id="listen"]');
+  const navLinkEls = navLinks.querySelectorAll<HTMLAnchorElement>('.nav__link');
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinkEls.forEach(a => {
+            const isActive = a.getAttribute('href') === '#' + entry.target.id;
+            a.classList.toggle('is-active', isActive);
+          });
+        }
+      });
+    },
+    { threshold: 0.3 }
+  );
+
+  sections.forEach(s => observer.observe(s));
+</script>

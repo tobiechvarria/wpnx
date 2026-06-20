@@ -1,0 +1,24 @@
+{
+  "name": "wpnx",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "generate-types": "wrangler types"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^13.7.0",
+    "astro": "^6.4.7",
+    "decap-cms-app": "^3.14.1",
+    "wrangler": "^4.103.0"
+  },
+  "overrides": {
+    "vite": "^7"
+  }
+}
