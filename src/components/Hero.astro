@@ -1,4 +1,5 @@
 ---
+import { marked } from 'marked';
 import Player from './Player.astro';
 
 interface Props {
@@ -16,8 +17,11 @@ const {
   heroBody = DEFAULT_BODY,
 } = Astro.props;
 
-// Split heroBody on double newline for paragraphs
-const paragraphs = heroBody.split(/\n\n+/).filter(Boolean);
+// Split heroBody on double newline for paragraphs, render inline markdown (bold/italic/links)
+const paragraphs = heroBody
+  .split(/\n\n+/)
+  .filter(Boolean)
+  .map((p) => marked.parseInline(p));
 ---
 
 <div class="hero">
@@ -26,7 +30,7 @@ const paragraphs = heroBody.split(/\n\n+/).filter(Boolean);
     <h1 class="hero__title">WPNX<em>107.7</em></h1>
     <p class="hero__freq">{tagline}</p>
     <div class="hero__body">
-      {paragraphs.map(p => <p>{p}</p>)}
+      {paragraphs.map(p => <p set:html={p} />)}
     </div>
     <div class="hero__actions">
       <a href="#listen" class="btn btn--signal">Listen Live</a>

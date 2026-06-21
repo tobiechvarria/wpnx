@@ -41,7 +41,8 @@ collections:
 
           - label: "Hero Body Text"
             name: heroBody
-            widget: text
+            widget: markdown
+            buttons: ["bold", "italic", "link"]
             hint: "The 2–3 sentence description in the hero section"
 
           - label: "Contact Email"
@@ -134,7 +135,8 @@ collections:
 
           - label: "Description"
             name: description
-            widget: text
+            widget: markdown
+            buttons: ["bold", "italic", "link"]
             hint: "The paragraph of text in the GRC section"
 
           - label: "Focus Areas"

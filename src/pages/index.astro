@@ -1,4 +1,5 @@
 ---
+import { marked } from 'marked';
 import Layout    from '../layouts/Layout.astro';
 import Nav       from '../components/Nav.astro';
 import GRCBanner from '../components/GRCBanner.astro';
@@ -46,7 +47,7 @@ const eventTypeClass = {
         </header>
         <div class="grc-grid">
           <div class="grc-grid__main">
-            <p set:html={grc.description.replace(/30th Annual Grassroots Radio Conference/, `<strong>${grc.edition} Grassroots Radio Conference</strong>`)}></p>
+            <p set:html={marked.parseInline(grc.description)}></p>
             <blockquote class="grc-quote">"Not a trade show. A working space for community radio practice."</blockquote>
             <ul class="focus-list">
               {grc.focusAreas.map(area => <li>{area}</li>)}
