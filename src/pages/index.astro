@@ -47,7 +47,7 @@ const eventTypeClass = {
         </header>
         <div class="grc-grid">
           <div class="grc-grid__main">
-            <p set:html={marked.parseInline(grc.description)}></p>
+            <div set:html={marked.parse(grc.description)} />
             <blockquote class="grc-quote">"Not a trade show. A working space for community radio practice."</blockquote>
             <ul class="focus-list">
               {grc.focusAreas.map(area => <li>{area}</li>)}
