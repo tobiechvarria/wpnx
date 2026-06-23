@@ -1,0 +1,54 @@
+---
+interface Props {
+  donateCfg: any;
+  number?: string;
+}
+
+const { donateCfg, number = '08' } = Astro.props;
+---
+
+<section class="section" id="donate" aria-labelledby="donate-title">
+  <div class="section__inner">
+    <header class="section__header">
+      <span class="section__num">{number} / Support</span>
+      <h2 class="section__title" id="donate-title">Support the <em>Station</em></h2>
+    </header>
+    <div class="donate-grid">
+      <div>
+        <p>{donateCfg.intro}</p>
+        <div class="donate-tiers">
+          {donateCfg.tiers.map(tier => (
+            <div class:list={['donate-tier', { 'donate-tier--featured': tier.featured }]}>
+              <span class="donate-tier__amount">${tier.amount}</span>
+              <div>
+                <p class="donate-tier__name">{tier.name}</p>
+                <p class="donate-tier__period">/month{tier.featured ? ' · Most Impactful' : ''}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p class="donate-note">Powered by Zeffy — $0 platform fees. Free Radio Pensacola is a registered nonprofit.</p>
+      </div>
+      <div class="embed-placeholder"><p class="embed-placeholder__label">Zeffy Donation Embed</p><p class="embed-placeholder__note">Paste Zeffy iframe here after creating your donation campaign.</p><a href="https://www.zeffy.com" target="_blank" rel="noopener noreferrer" class="btn" style="margin-top:1rem;">Set Up Zeffy →</a></div>
+    </div>
+  </div>
+</section>
+
+<style>
+.donate-grid { display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; }
+.donate-tiers { display:flex; flex-direction:column; gap:1rem; margin:1.5rem 0; }
+.donate-tier { display:grid; grid-template-columns:auto 1fr; gap:1rem; align-items:center; border:2px solid var(--color-ink); padding:.85rem 1rem; transition:background var(--transition-fast); }
+.donate-tier:hover,.donate-tier--featured { background:var(--color-paper-alt); }
+.donate-tier__amount { font-family:var(--font-display); font-size:2rem; line-height:1; color:var(--color-red); }
+.donate-tier__name { font-family:var(--font-mono); font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; }
+.donate-tier__period { font-family:var(--font-mono); font-size:.68rem; color:var(--color-muted); margin-top:2px; }
+.donate-note { font-family:var(--font-mono); font-size:.68rem; color:var(--color-muted); letter-spacing:.04em; line-height:1.5; }
+.embed-placeholder { border:2px dashed var(--color-rule); padding:2rem; text-align:center; margin-top:1rem; background:var(--color-paper-alt); }
+.embed-placeholder__label { font-family:var(--font-mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--color-muted); margin-bottom:.5rem; }
+.embed-placeholder__note { font-size:.85rem; color:var(--color-muted); font-style:italic; }
+
+@media (max-width:900px) {
+  .donate-grid { grid-template-columns:1fr; }
+  .donate-tier { grid-template-columns:1fr; }
+}
+</style>
