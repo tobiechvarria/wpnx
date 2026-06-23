@@ -1,0 +1,53 @@
+---
+import ContactForm from '../ContactForm.astro';
+
+interface Props {
+  number?: string;
+}
+
+const { number = '06' } = Astro.props;
+---
+
+<section class="section" id="participate" aria-labelledby="participate-title">
+  <div class="section__inner">
+    <header class="section__header">
+      <span class="section__num">{number} / Participate</span>
+      <h2 class="section__title" id="participate-title">Get <em>Involved</em></h2>
+    </header>
+    <div class="part-grid">
+      <div class="part-block">
+        <p class="part-block__icon">V</p>
+        <h3 class="part-block__title">Volunteer</h3>
+        <p class="part-block__desc">Support station operations, events, programming, and outreach. No prior radio experience required.</p>
+        <ul class="part-block__list"><li>Studio support</li><li>Event assistance</li><li>Archiving + documentation</li><li>Community outreach</li></ul>
+      </div>
+      <div class="part-block">
+        <p class="part-block__icon">S</p>
+        <h3 class="part-block__title">Propose a Show</h3>
+        <p class="part-block__desc">Music, conversation, experimental sound, interviews — we want to hear your idea.</p>
+        <ul class="part-block__list"><li>Music programming</li><li>Talk + interview shows</li><li>Experimental sound art</li><li>Cultural programs</li></ul>
+      </div>
+      <div class="part-block">
+        <p class="part-block__icon">E</p>
+        <h3 class="part-block__title">Education</h3>
+        <p class="part-block__desc">Hands-on learning in radio production and transmission. GRC 2026 is the first major opportunity.</p>
+        <ul class="part-block__list"><li>Radio production workshops</li><li>Broadcast + streaming training</li><li>GRC 2026 conference</li></ul>
+      </div>
+    </div>
+    <ContactForm />
+  </div>
+</section>
+
+<style>
+.part-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; }
+.part-block__icon { font-family:var(--font-display); font-size:3rem; color:var(--color-red); line-height:1; margin-bottom:.5rem; }
+.part-block__title { font-family:var(--font-display); font-size:1.5rem; letter-spacing:.03em; margin-bottom:.75rem; }
+.part-block__desc { font-size:.9rem; line-height:1.65; color:var(--color-muted); margin-bottom:1rem; }
+.part-block__list { list-style:none; }
+.part-block__list li { font-family:var(--font-mono); font-size:.72rem; padding:.35rem 0; border-bottom:1px solid var(--color-paper-alt); display:flex; gap:.5rem; }
+.part-block__list li::before { content:'·'; color:var(--color-red); }
+
+@media (max-width:900px) {
+  .part-grid { grid-template-columns:1fr; }
+}
+</style>
