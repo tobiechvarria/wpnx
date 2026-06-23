@@ -1,5 +1,9 @@
 ---
-const links = [
+interface Props {
+  links?: Array<{ href: string; label: string; highlight?: boolean }>;
+}
+
+const defaultLinks = [
   { href: '#listen',      label: 'Listen'      },
   { href: '#grc',         label: 'GRC 2026'    },
   { href: '#schedule',    label: 'Schedule'    },
@@ -8,6 +12,8 @@ const links = [
   { href: '#about',       label: 'About'       },
   { href: '#donate',      label: 'Donate', highlight: true },
 ];
+
+const { links = defaultLinks } = Astro.props;
 ---
 
 <nav class="nav" aria-label="Main navigation">
