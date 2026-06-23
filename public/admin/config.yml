@@ -256,3 +256,236 @@ collections:
                 widget: boolean
                 default: false
                 hint: "Turn on for the most prominent tier"
+
+  # ── HOMEPAGE LAYOUT ───────────────────────────────────────
+  - name: homepage
+    label: "🏠 Homepage Layout"
+    files:
+      - label: "Homepage Blocks"
+        name: homepage
+        file: src/content/page/home.json
+        fields:
+          - label: "Page Blocks"
+            name: blocks
+            widget: list
+            types:
+              # Fixed sections
+              - label: "Navigation"
+                name: nav
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: nav
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "Navigation — links computed from page structure"
+                    required: false
+                    disabled: true
+
+              - label: "GRC Banner"
+                name: grcBanner
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: grcBanner
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "GRC Banner — content from GRC collection"
+                    required: false
+                    disabled: true
+
+              - label: "Hero"
+                name: hero
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: hero
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "Hero Section — content from Site Settings"
+                    required: false
+                    disabled: true
+
+              - label: "GRC Section"
+                name: grc
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: grc
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "GRC Details — content from GRC collection"
+                    required: false
+                    disabled: true
+
+              - label: "Schedule Section"
+                name: schedule
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: schedule
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "Conference Schedule — content from Schedule collection"
+                    required: false
+                    disabled: true
+
+              - label: "Shows Section"
+                name: shows
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: shows
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "On-Demand Shows — content from Shows collection"
+                    required: false
+                    disabled: true
+
+              - label: "Participate Section"
+                name: participate
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: participate
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "Get Involved Section — hardcoded content"
+                    required: false
+                    disabled: true
+
+              - label: "Donate Section"
+                name: donate
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: donate
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "Support Section — content from Donation Tiers"
+                    required: false
+                    disabled: true
+
+              - label: "About Section"
+                name: about
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: about
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "About Section — hardcoded content"
+                    required: false
+                    disabled: true
+
+              - label: "Footer"
+                name: footer
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: footer
+                  - label: "Info"
+                    name: _info
+                    widget: string
+                    default: "Footer — links computed from page structure"
+                    required: false
+                    disabled: true
+
+              # Flexible blocks
+              - label: "Text Block"
+                name: text
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: text
+                  - label: "Body Text"
+                    name: body
+                    widget: markdown
+                    buttons: ["bold", "italic", "strikethrough", "code", "link", "heading-one", "heading-two", "heading-three", "heading-four", "heading-five", "heading-six", "quote", "bulleted-list", "numbered-list"]
+
+              - label: "Quote Block"
+                name: quote
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: quote
+                  - label: "Quote Text"
+                    name: text
+                    widget: text
+                  - label: "Attribution (optional)"
+                    name: attribution
+                    widget: string
+                    required: false
+
+              - label: "Image + Caption Block"
+                name: image
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: image
+                  - label: "Image"
+                    name: image
+                    widget: image
+                  - label: "Alt Text"
+                    name: alt
+                    widget: string
+                  - label: "Caption (optional)"
+                    name: caption
+                    widget: string
+                    required: false
+
+              - label: "CTA Banner Block"
+                name: cta
+                widget: object
+                fields:
+                  - label: "Block Type"
+                    name: type
+                    widget: hidden
+                    default: cta
+                  - label: "Heading"
+                    name: heading
+                    widget: string
+                  - label: "Subtext"
+                    name: subtext
+                    widget: text
+                  - label: "Button Label"
+                    name: buttonLabel
+                    widget: string
+                  - label: "Button Link"
+                    name: buttonHref
+                    widget: string
