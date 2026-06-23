@@ -1,0 +1,45 @@
+---
+interface Props {
+  number?: string;
+}
+
+const { number = '07' } = Astro.props;
+---
+
+<section class="section" id="about" aria-labelledby="about-title">
+  <div class="section__inner">
+    <header class="section__header">
+      <span class="section__num">{number} / About</span>
+      <h2 class="section__title" id="about-title">About <em>WPNX</em></h2>
+    </header>
+    <div class="about-grid">
+      <div class="about-grid__body">
+        <p>WPNX 107.7 FM is a low-power FM community radio station in formation, broadcasting from the roof of The SCI Building at 220 West Garden Street in Downtown Pensacola. Operated by <strong>Free Radio Pensacola</strong>, a nonprofit focused on community media, independent broadcasting, and public access to the airwaves.</p>
+        <h3>Formation</h3>
+        <p>WPNX is part of a broader effort to rebuild local broadcasting capacity through hands-on participation and shared media practice. Rather than operating as a finished institution, WPNX is a community experiment being developed in public.</p>
+        <h3>Community Participation</h3>
+        <p>Radio as a shared practice. Participation is not limited to broadcasting — it includes listening, contributing, documenting, organizing, and helping shape the cultural life of the station.</p>
+      </div>
+      <aside class="about-grid__side">
+        <div class="sidebar-block"><p class="sidebar-block__label">Transmitter</p><address class="sidebar-block__val">SCI Building<br />220 West Garden St<br />Downtown Pensacola, FL</address></div>
+        <div class="sidebar-block"><p class="sidebar-block__label">GRC Venue</p><address class="sidebar-block__val">Voices of Pensacola<br />117 E Government St<br />Pensacola, FL 32502</address></div>
+        <div class="sidebar-block"><p class="sidebar-block__label">Contact</p><a href="mailto:info@freeradiopensacola.com" class="sidebar-block__link">info@freeradiopensacola.com</a></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+.about-grid { display:grid; grid-template-columns:2fr 1fr; gap:2.5rem; }
+.about-grid__body p { line-height:1.8; }
+.about-grid__body p+p { margin-top:1em; }
+.about-grid__body h3 { font-family:var(--font-display); font-size:1.5rem; margin:2rem 0 .75rem; letter-spacing:.03em; }
+.sidebar-block { border:2px solid var(--color-ink); padding:1.25rem; margin-bottom:1rem; }
+.sidebar-block__label { font-family:var(--font-mono); font-size:.62rem; letter-spacing:.15em; text-transform:uppercase; color:var(--color-red); margin-bottom:.75rem; border-bottom:1px solid var(--color-paper-alt); padding-bottom:.5rem; }
+.sidebar-block__val { font-style:normal; font-size:.9rem; line-height:1.7; color:var(--color-muted); }
+.sidebar-block__link { color:var(--color-red); font-family:var(--font-mono); font-size:.8rem; text-decoration:underline; text-underline-offset:3px; }
+
+@media (max-width:900px) {
+  .about-grid { grid-template-columns:1fr; }
+}
+</style>
