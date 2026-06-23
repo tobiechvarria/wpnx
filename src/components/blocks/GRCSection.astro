@@ -1,5 +1,6 @@
 ---
 import { marked } from 'marked';
+import Countdown from '../Countdown.astro';
 
 interface Props {
   grc: any;
@@ -19,6 +20,7 @@ const { grc, number = '03' } = Astro.props;
       <div class="grc-grid__main">
         <div set:html={marked.parse(grc.description)} />
         <blockquote class="grc-quote">"Not a trade show. A working space for community radio practice."</blockquote>
+        <Countdown targetDate={grc.registrationOpens} label="Registration opens" />
         <ul class="focus-list">
           {grc.focusAreas.map(area => <li>{area}</li>)}
         </ul>
