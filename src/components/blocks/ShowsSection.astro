@@ -1,0 +1,33 @@
+---
+import ShowRow from '../ShowRow.astro';
+
+interface Props {
+  shows: Array<any>;
+  number?: string;
+}
+
+const { shows, number = '05' } = Astro.props;
+---
+
+<section class="section" id="shows" aria-labelledby="shows-title">
+  <div class="section__inner">
+    <header class="section__header">
+      <span class="section__num">{number} / Shows</span>
+      <h2 class="section__title" id="shows-title">On Demand <em>Programs</em></h2>
+    </header>
+    <p class="shows-intro">Programming from Radio Free Pensacola. Shows expand as WPNX grows through participation.</p>
+    <div class="shows-list">
+      {shows.map((show, showIndex) => (
+        <ShowRow id={show.id} show={show.show} host={show.host} episode={show.episode} src={show.src} index={showIndex} />
+      ))}
+    </div>
+    <div style="margin-top:2rem;">
+      <a href="#participate" class="btn btn--primary">Submit a Show Proposal</a>
+    </div>
+  </div>
+</section>
+
+<style>
+.shows-intro { font-style:italic; color:var(--color-muted); margin-bottom:1.5rem; }
+.shows-list { border-top:2px solid var(--color-ink); }
+</style>
