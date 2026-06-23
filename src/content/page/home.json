@@ -1,0 +1,14 @@
+{
+  "blocks": [
+    { "type": "nav" },
+    { "type": "grcBanner" },
+    { "type": "hero" },
+    { "type": "grc" },
+    { "type": "schedule" },
+    { "type": "shows" },
+    { "type": "participate" },
+    { "type": "donate" },
+    { "type": "about" },
+    { "type": "footer" }
+  ]
+}
