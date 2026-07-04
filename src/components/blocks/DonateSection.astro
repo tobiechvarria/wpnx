@@ -29,7 +29,16 @@ const { donateCfg, number = '08' } = Astro.props;
         </div>
         <p class="donate-note">Powered by Zeffy — $0 platform fees. Free Radio Pensacola is a registered nonprofit.</p>
       </div>
-      <div class="embed-placeholder"><p class="embed-placeholder__label">Zeffy Donation Embed</p><p class="embed-placeholder__note">Paste Zeffy iframe here after creating your donation campaign.</p><a href="https://www.zeffy.com" target="_blank" rel="noopener noreferrer" class="btn" style="margin-top:1rem;">Set Up Zeffy →</a></div>
+      <div class="donate-embed">
+        <div data-zeffy-embed data-form-url="/embed/donation-form/donate-to-help-us-run-freely"></div>
+        <div data-zeffy-embed-fallback style="display:none;">
+          <div style="position:relative;overflow:hidden;height:450px;width:100%;"><iframe title='Donation form powered by Zeffy' style='position: absolute; border: 0; top:0;left:0;bottom:0;right:0;width:100%;height:100%' data-zeffy-embed-src='https://www.zeffy.com/embed/donation-form/donate-to-help-us-run-freely' allowpaymentrequest allowTransparency="true"></iframe></div>
+        </div>
+        <script
+          src="https://www.zeffy.com/embed/v2/zeffy-embed.js"
+          onerror="document.querySelectorAll('[data-zeffy-embed-fallback]').forEach(function(el){el.style.display='block';el.querySelectorAll('iframe[data-zeffy-embed-src]').forEach(function(f){f.src=f.getAttribute('data-zeffy-embed-src');});});">
+        </script>
+      </div>
     </div>
   </div>
 </section>
@@ -43,9 +52,9 @@ const { donateCfg, number = '08' } = Astro.props;
 .donate-tier__name { font-family:var(--font-mono); font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; }
 .donate-tier__period { font-family:var(--font-mono); font-size:.68rem; color:var(--color-muted); margin-top:2px; }
 .donate-note { font-family:var(--font-mono); font-size:.68rem; color:var(--color-muted); letter-spacing:.04em; line-height:1.5; }
-.embed-placeholder { border:2px dashed var(--color-rule); padding:2rem; text-align:center; margin-top:1rem; background:var(--color-paper-alt); }
-.embed-placeholder__label { font-family:var(--font-mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--color-muted); margin-bottom:.5rem; }
-.embed-placeholder__note { font-size:.85rem; color:var(--color-muted); font-style:italic; }
+/* Zeffy's script inlines its own auto-centering margin on this wrapper —
+   left-align it instead, at every viewport size. */
+.donate-embed [data-zeffy-embed] { margin:0 !important; }
 
 @media (max-width:900px) {
   .donate-grid { grid-template-columns:1fr; }
