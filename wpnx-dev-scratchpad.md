@@ -9,7 +9,7 @@
 - **CMS Options:** Decap CMS (Git-based) or Tina CMS (visual editing)
 - **Audio:** KLF MP3 looping player (custom vanilla JS)
 - **Fonts:** Bebas Neue, IBM Plex Mono, Source Serif 4 (Google Fonts)
-- **Brand color:** `#ef4444` (Tailwind red-500)
+- **Brand color:** `#02a4f7` (sampled from station logo)
 
 ---
 
@@ -83,8 +83,8 @@ npm run preview
   --color-ink:        #000000;
   --color-paper:      #ffffff;
   --color-paper-alt:  #f5f5f5;
-  --color-red:        #ef4444;   /* brand — Tailwind red-500 */
-  --color-red-dark:   #c0392b;
+  --color-accent:        #02a4f7;   /* brand — sampled from logo */
+  --color-accent-dark:   #0284c7;
   --color-muted:      #666666;
   --color-rule:       #e0e0e0;
 

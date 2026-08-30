@@ -40,12 +40,12 @@ const { number = '06' } = Astro.props;
 
 <style>
 .part-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; }
-.part-block__icon { font-family:var(--font-display); font-size:3rem; color:var(--color-red); line-height:1; margin-bottom:.5rem; }
+.part-block__icon { font-family:var(--font-display); font-size:3rem; color:var(--color-accent); line-height:1; margin-bottom:.5rem; }
 .part-block__title { font-family:var(--font-display); font-size:1.5rem; letter-spacing:.03em; margin-bottom:.75rem; }
 .part-block__desc { font-size:.9rem; line-height:1.65; color:var(--color-muted); margin-bottom:1rem; }
 .part-block__list { list-style:none; }
 .part-block__list li { font-family:var(--font-mono); font-size:.72rem; padding:.35rem 0; border-bottom:1px solid var(--color-paper-alt); display:flex; gap:.5rem; }
-.part-block__list li::before { content:'·'; color:var(--color-red); }
+.part-block__list li::before { content:'·'; color:var(--color-accent); }
 
 @media (max-width:900px) {
   .part-grid { grid-template-columns:1fr; }

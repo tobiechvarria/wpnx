@@ -96,10 +96,10 @@ const { grc, number = '03' } = Astro.props;
 
 <style>
 .grc-grid { display:grid; grid-template-columns:1fr 320px; gap:2.5rem; align-items:start; }
-.grc-quote { border-left:4px solid var(--color-red); padding:.6rem 1rem; margin:1.5rem 0; font-style:italic; color:var(--color-muted); background:var(--color-paper-alt); font-size:1.05rem; line-height:1.6; }
+.grc-quote { border-left:4px solid var(--color-accent); padding:.6rem 1rem; margin:1.5rem 0; font-style:italic; color:var(--color-muted); background:var(--color-paper-alt); font-size:1.05rem; line-height:1.6; }
 .focus-list { list-style:none; margin-top:1rem; }
 .focus-list li { font-family:var(--font-mono); font-size:.8rem; padding:.5rem 0; border-bottom:1px solid var(--color-paper-alt); display:flex; align-items:center; gap:.75rem; letter-spacing:.04em; }
-.focus-list li::before { content:'→'; color:var(--color-red); flex-shrink:0; }
+.focus-list li::before { content:'→'; color:var(--color-accent); flex-shrink:0; }
 .tickets { margin-top:2.5rem; padding-top:2.5rem; border-top:3px double var(--color-rule); }
 /* Zeffy's script inlines its own auto-centering margin on this wrapper —
    left-align it instead, at every viewport size. */
@@ -110,12 +110,12 @@ const { grc, number = '03' } = Astro.props;
 .tickets__row .tickets__embed { flex:1; min-width:0; }
 .ticket-tiers { display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem; }
 .ticket-tier { border:2px solid var(--color-ink); position:relative; padding:1rem 1rem 1rem 4.5rem; }
-.ticket-tier--early { border-color:var(--color-red); }
+.ticket-tier--early { border-color:var(--color-accent); }
 .ticket-tier__flag { position:absolute; left:0; top:0; bottom:0; width:3.5rem; background:var(--color-ink); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:.75rem; letter-spacing:.08em; color:var(--color-paper); writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg); }
-.ticket-tier--early .ticket-tier__flag { background:var(--color-red); }
+.ticket-tier--early .ticket-tier__flag { background:var(--color-accent); }
 .ticket-tier__inner { display:flex; align-items:center; gap:1.25rem; }
 .ticket-tier__price { font-family:var(--font-display); font-size:2.5rem; line-height:1; flex-shrink:0; }
-.ticket-tier--early .ticket-tier__price { color:var(--color-red); }
+.ticket-tier--early .ticket-tier__price { color:var(--color-accent); }
 .ticket-tier__name { font-family:var(--font-mono); font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; margin-bottom:.2rem; }
 .ticket-tier__window { font-family:var(--font-mono); font-size:.68rem; color:var(--color-muted); }
 .ticket-tier__includes { font-size:.82rem; color:var(--color-muted); font-style:italic; margin-top:.2rem; }
