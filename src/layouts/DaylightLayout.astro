@@ -1,0 +1,181 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/daylight.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  activePath: string;
+}
+
+const {
+  title,
+  description = 'WPNX 107.7 FM — a low-power FM community radio station in formation, broadcasting from Downtown Pensacola.',
+  activePath,
+} = Astro.props;
+
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/shows', label: 'Shows' },
+  { href: '/participate', label: 'Participate' },
+  { href: '/donate', label: 'Donate' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <ClientRouter />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;1,300;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="daylight">
+    <div class="dl__shell">
+      <header class="dl-topbar">
+        <nav class="dl-nav" aria-label="Main navigation">
+          <a href="/" class="dl-nav__brand" aria-label="WPNX 107.7 FM — Home">
+            <img src="/images/wpnx-logo-paper.svg" alt="WPNX 107.7 FM" class="dl-nav__logo" />
+          </a>
+
+          <button class="dl-nav__toggle" id="dlNavToggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="dlNavLinks">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </button>
+
+          <ul class="dl-nav__links" id="dlNavLinks" role="list">
+            {navLinks.map(link => (
+              <li>
+                <a
+                  href={link.href}
+                  class:list={['dl-nav__link', { 'is-active': activePath === link.href }]}
+                  aria-current={activePath === link.href ? 'page' : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <span class="dl-nav__status">
+            <span class="dl-nav__dot" aria-hidden="true"></span>
+            Pre-Launch
+          </span>
+        </nav>
+
+        <div class="dl-player" id="dlPlayer" transition:persist="dl-player">
+          <button class="dl-player__btn" id="dlPlayerBtn" aria-label="Play">
+            <svg class="dl-player__icon dl-player__icon--play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="dl-player__icon dl-player__icon--pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <span class="dl-player__freq">107.7</span>
+          <span class="dl-player__label">WPNX — Free Radio Pensacola</span>
+          <span class="dl-player__status" id="dlPlayerStatus">Click to play · Loops continuously</span>
+          <input type="range" class="dl-player__vol" id="dlPlayerVol" min="0" max="1" step="0.05" value="0.8" aria-label="Volume" />
+          <audio id="dlPlayerAudio" loop preload="none" aria-label="The KLF — Elvis On The Radio, Steel Guitar In My Soul"></audio>
+        </div>
+      </header>
+
+      <main class="dl-main">
+        <slot />
+      </main>
+
+      <footer class="dl-footer">
+        <div class="dl-footer__inner">
+          <div>
+            <p class="dl-footer__wordmark">WPNX 107.7 FM</p>
+            <p class="dl-footer__sub">Free Radio Pensacola — Community Radio in Formation</p>
+          </div>
+          <nav aria-label="Footer navigation" class="dl-footer__nav">
+            <ul role="list">
+              {navLinks.map(link => <li><a href={link.href}>{link.label}</a></li>)}
+            </ul>
+          </nav>
+          <div class="dl-footer__addr">
+            <address>SCI Building, 220 West Garden St<br />Downtown Pensacola, FL</address>
+            <p>© {new Date().getFullYear()} Free Radio Pensacola · Keep it free.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+
+    <script>
+      function initDaylightPage() {
+        // ── Mobile nav toggle (nav itself is not persisted, rewired every page) ──
+        const toggle = document.getElementById('dlNavToggle') as HTMLButtonElement | null;
+        const links = document.getElementById('dlNavLinks') as HTMLUListElement | null;
+        if (toggle && links && toggle.dataset.wired !== '1') {
+          toggle.dataset.wired = '1';
+          toggle.addEventListener('click', () => {
+            const open = links.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', String(open));
+          });
+          links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+            links.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+          }));
+        }
+
+        // ── Persistent stream player — guarded so a persisted node is only wired once ──
+        const audio = document.getElementById('dlPlayerAudio') as HTMLAudioElement | null;
+        const btn = document.getElementById('dlPlayerBtn') as HTMLButtonElement | null;
+        const statusEl = document.getElementById('dlPlayerStatus') as HTMLElement | null;
+        const volSlider = document.getElementById('dlPlayerVol') as HTMLInputElement | null;
+        if (!audio || !btn || !statusEl || !volSlider) return;
+        if (audio.dataset.wired === '1') return;
+        audio.dataset.wired = '1';
+
+        const iconPlay = btn.querySelector('.dl-player__icon--play') as HTMLElement;
+        const iconPause = btn.querySelector('.dl-player__icon--pause') as HTMLElement;
+        const SRC = '/the-klf-elvis-on-the-radio.mp3';
+        audio.volume = parseFloat(volSlider.value);
+
+        function setPlaying(playing: boolean) {
+          btn!.classList.toggle('is-playing', playing);
+          iconPlay.style.display = playing ? 'none' : '';
+          iconPause.style.display = playing ? '' : 'none';
+          btn!.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+          statusEl!.textContent = playing ? 'Now playing · Loops continuously' : 'Click to play · Loops continuously';
+        }
+
+        btn.addEventListener('click', () => {
+          if (audio.paused) {
+            if (!audio.src) audio.src = SRC;
+            audio.play().catch(() => { statusEl!.textContent = 'Could not load audio'; });
+          } else {
+            audio.pause();
+          }
+        });
+        audio.addEventListener('playing', () => setPlaying(true));
+        audio.addEventListener('pause', () => setPlaying(false));
+        audio.addEventListener('error', () => { statusEl!.textContent = 'Could not load audio'; setPlaying(false); });
+        volSlider.addEventListener('input', () => { audio.volume = parseFloat(volSlider.value); });
+
+        // Reflect current state in case this page-load is a transition back
+        // to an already-playing persisted audio element.
+        setPlaying(!audio.paused);
+      }
+
+      // astro:page-load covers every view-transition navigation reliably.
+      // It should also cover the very first load, but since this script is a
+      // deferred module that can finish parsing after the router's own
+      // initial dispatch, also run once immediately if the document is
+      // already interactive/complete by the time we get here — initDaylightPage
+      // is idempotent (guarded by data-wired) so a double call is harmless.
+      document.addEventListener('astro:page-load', initDaylightPage);
+      if (document.readyState !== 'loading') initDaylightPage();
+      else document.addEventListener('DOMContentLoaded', initDaylightPage);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+---
+import DaylightLayout from '../layouts/DaylightLayout.astro';
+---
+
+<DaylightLayout title="About — WPNX 107.7 FM" activePath="/about">
+  <div class="dl-head">
+    <p class="dl-head__a">WPNX, A<br />COMMUNITY<br />RADIO STATION</p>
+    <p class="dl-head__b">IN FORMATION<br /><span style="color:var(--color-ink)">IN PENSACOLA.</span></p>
+  </div>
+
+  <section class="dl-section" style="display:grid; grid-template-columns:2fr 1fr; gap:3rem;">
+    <div class="about-prose">
+      <p>WPNX 107.7 FM is a low-power FM community radio station in formation, broadcasting from the roof of The SCI Building at 220 West Garden Street in Downtown Pensacola. Operated by <strong>Free Radio Pensacola</strong>, a nonprofit focused on community media, independent broadcasting, and public access to the airwaves.</p>
+      <h2>Formation</h2>
+      <p>WPNX is part of a broader effort to rebuild local broadcasting capacity through hands-on participation and shared media practice. Rather than operating as a finished institution, WPNX is a community experiment being developed in public.</p>
+      <h2>Community Participation</h2>
+      <p>Radio as a shared practice. Participation is not limited to broadcasting — it includes listening, contributing, documenting, organizing, and helping shape the cultural life of the station.</p>
+    </div>
+    <aside class="about-facts">
+      <div class="fact-block"><p class="fact-block__label">Transmitter</p><p class="fact-block__val">SCI Building<br />220 West Garden St<br />Downtown Pensacola, FL</p></div>
+      <div class="fact-block"><p class="fact-block__label">Contact</p><p class="fact-block__val"><a href="mailto:info@freeradiopensacola.com">info@freeradiopensacola.com</a></p></div>
+    </aside>
+  </section>
+
+  <style>
+    .about-prose p { line-height: 1.85; margin-bottom: 1.1em; max-width: 68ch; }
+    .about-prose h2 { font-family: var(--f-display); font-size: 1.5rem; margin: 2rem 0 0.6rem; letter-spacing: 0.01em; }
+    .about-facts { display: flex; flex-direction: column; gap: 1.5rem; }
+    .fact-block { border-top: 1px solid var(--color-rule); padding-top: 0.75rem; }
+    .fact-block__label { font-family: var(--f-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-dark); margin-bottom: 0.5rem; }
+    .fact-block__val { font-size: 0.9rem; color: var(--color-muted); line-height: 1.7; }
+    .fact-block__val a { color: var(--color-accent-dark); border-bottom: 1px solid var(--color-rule); }
+    @media (max-width: 760px) {
+      .dl-section[style] { display: flex !important; flex-direction: column; gap: 2rem !important; }
+    }
+  </style>
+</DaylightLayout>

@@ -1,0 +1,117 @@
+---
+import DaylightLayout from '../layouts/DaylightLayout.astro';
+
+const lines = [
+  { num: '01', title: 'Volunteer', desc: 'Support station operations, events, programming, and outreach. No prior radio experience required — studio support, event assistance, archiving, community outreach.' },
+  { num: '02', title: 'Propose a Show', desc: 'Music, conversation, experimental sound, interviews — we want to hear your idea. Music programming, talk shows, sound art, and cultural programs are all open lines.' },
+  { num: '03', title: 'Education', desc: 'Hands-on learning in radio production and transmission — workshops, and broadcast + streaming training.' },
+];
+---
+
+<DaylightLayout title="Participate — WPNX 107.7 FM" activePath="/participate">
+  <div class="dl-head">
+    <p class="dl-head__a">GET<br />INVOLVED</p>
+    <p class="dl-head__b">NO EXPERIENCE<br /><span style="color:var(--color-ink)">REQUIRED</span></p>
+  </div>
+
+  <section class="dl-section">
+    <div class="archive-table" role="table" aria-label="Ways to participate">
+      {lines.map(l => (
+        <div class="archive-row participate-row" role="row">
+          <span class="archive-row__num" role="cell">{l.num}</span>
+          <span class="archive-row__main" role="cell">
+            <strong style="font-family:var(--f-mono); font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; display:block; margin-bottom:0.4rem;">{l.title}</strong>
+            <span style="color:var(--color-muted); font-size:0.92rem; line-height:1.7; max-width:65ch; display:block;">{l.desc}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+
+    <form id="dlForm" class="dl-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate aria-describedby="dl-form-errors">
+      <p class="dl-section__title" style="margin-top:2.5rem;">Add Your Entry</p>
+      <div id="dl-form-errors" role="alert" aria-live="polite" class="dl-form__errors" hidden></div>
+      <div class="dl-form__row">
+        <div class="dl-form__field">
+          <label for="dlf-name">Name <span aria-hidden="true">*</span></label>
+          <input type="text" id="dlf-name" name="name" autocomplete="name" required />
+        </div>
+        <div class="dl-form__field">
+          <label for="dlf-email">Email <span aria-hidden="true">*</span></label>
+          <input type="email" id="dlf-email" name="email" autocomplete="email" required />
+        </div>
+      </div>
+      <div class="dl-form__field">
+        <label for="dlf-interest">Interested in</label>
+        <select id="dlf-interest" name="interest">
+          <option value="volunteer">Volunteering</option>
+          <option value="show">Proposing a show</option>
+          <option value="listen">Listener updates only</option>
+        </select>
+      </div>
+      <div class="dl-form__field">
+        <label for="dlf-message">Message</label>
+        <textarea id="dlf-message" name="message" rows="3"></textarea>
+      </div>
+      <div class="dl-form__footer">
+        <button type="submit" class="dl-btn dl-btn--primary">Submit Entry</button>
+        <a href="mailto:info@freeradiopensacola.com" class="dl-form__email">info@freeradiopensacola.com</a>
+      </div>
+      <div class="dl-form__success" id="dlFormSuccess" role="alert" hidden>Entry received — we'll be in touch. Keep it free.</div>
+    </form>
+  </section>
+
+  <style>
+    .participate-row { grid-template-columns: 60px 1fr; }
+    .dl-form { max-width: 640px; }
+    .dl-form__errors { background: #fff4f4; border: 1px solid var(--color-accent); padding: 0.6rem 0.9rem; margin-bottom: 1rem; font-family: var(--f-mono); font-size: 0.78rem; color: var(--color-accent-dark); }
+    .dl-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .dl-form__field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+    .dl-form label { font-family: var(--f-mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); }
+    .dl-form input, .dl-form select, .dl-form textarea {
+      font-family: var(--f-body); font-size: 1rem; padding: 0.55rem 0; border: none; border-bottom: 1px solid var(--color-ink);
+      background: transparent; outline: none; color: var(--color-ink);
+    }
+    .dl-form select option { background: var(--color-paper); color: var(--color-ink); }
+    .dl-form input:focus, .dl-form select:focus, .dl-form textarea:focus { border-bottom-color: var(--color-accent); }
+    .dl-form textarea { resize: vertical; min-height: 80px; }
+    .dl-form__footer { display: flex; align-items: center; gap: 1.25rem; margin-top: 0.5rem; flex-wrap: wrap; }
+    .dl-form__email { font-family: var(--f-mono); font-size: 0.72rem; color: var(--color-muted); border-bottom: 1px solid var(--color-rule); }
+    .dl-form__success { margin-top: 1rem; font-family: var(--f-mono); font-size: 0.78rem; color: #1a7a2e; }
+    @media (max-width: 560px) { .dl-form__row { grid-template-columns: 1fr; } }
+  </style>
+
+  <script>
+    document.addEventListener('astro:page-load', () => {
+      const form = document.getElementById('dlForm') as HTMLFormElement | null;
+      const errorsEl = document.getElementById('dl-form-errors') as HTMLElement | null;
+      const successEl = document.getElementById('dlFormSuccess') as HTMLElement | null;
+      if (!form || !errorsEl || !successEl || form.dataset.wired === '1') return;
+      form.dataset.wired = '1';
+      form.addEventListener('submit', async (e: Event) => {
+        e.preventDefault();
+        const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+        const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+        const errors: string[] = [];
+        if (!name) errors.push('Name is required.');
+        if (!email) errors.push('Email is required.');
+        else if (!/^\S+@\S+\.\S+$/.test(email)) errors.push('Enter a valid email address.');
+        if (errors.length) {
+          errorsEl.textContent = errors.join(' ');
+          errorsEl.hidden = false;
+          errorsEl.focus();
+          return;
+        }
+        errorsEl.hidden = true;
+        try {
+          const data = new FormData(form);
+          const res = await fetch(form.action, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
+          if (res.ok) { form.hidden = true; successEl.hidden = false; }
+          else { errorsEl.textContent = 'Something went wrong. Please try again or email us directly.'; errorsEl.hidden = false; }
+        } catch {
+          errorsEl.textContent = 'Could not send — please email info@freeradiopensacola.com directly.';
+          errorsEl.hidden = false;
+        }
+      });
+    });
+  </script>
+</DaylightLayout>

@@ -1,140 +1,61 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Nav from '../components/Nav.astro';
-import GRCBanner from '../components/GRCBanner.astro';
-import Hero from '../components/Hero.astro';
-import Footer from '../components/Footer.astro';
-
-// Section components
-import GRCSection from '../components/blocks/GRCSection.astro';
-import ScheduleSection from '../components/blocks/ScheduleSection.astro';
-import ShowsSection from '../components/blocks/ShowsSection.astro';
-import ParticipateSection from '../components/blocks/ParticipateSection.astro';
-import DonateSection from '../components/blocks/DonateSection.astro';
-import AboutSection from '../components/blocks/AboutSection.astro';
-
-// Flexible block components
-import TextBlock from '../components/blocks/TextBlock.astro';
-import QuoteBlock from '../components/blocks/QuoteBlock.astro';
-import ImageCaptionBlock from '../components/blocks/ImageCaptionBlock.astro';
-import CTABanner from '../components/blocks/CTABanner.astro';
-
-// Data imports
-import home from '../content/page/home.json';
-import schedule from '../content/schedule/schedule.json';
+import DaylightLayout from '../layouts/DaylightLayout.astro';
 import station from '../content/settings/station.json';
-import grc from '../content/grc/grc.json';
-import donateCfg from '../content/donate/tiers.json';
 
-// Load all individual show files and sort by id
 const rawShows = import.meta.glob('../content/shows/*.json', { eager: true, import: 'default' });
-const shows = Object.values(rawShows).sort(
-  (a: any, b: any) => String(a.id).localeCompare(String(b.id))
-);
-
-// Block type → component registry
-const blockRegistry = {
-  nav: Nav,
-  grcBanner: GRCBanner,
-  hero: Hero,
-  grc: GRCSection,
-  schedule: ScheduleSection,
-  shows: ShowsSection,
-  participate: ParticipateSection,
-  donate: DonateSection,
-  about: AboutSection,
-  footer: Footer,
-  text: TextBlock,
-  quote: QuoteBlock,
-  image: ImageCaptionBlock,
-  cta: CTABanner,
-};
-
-// Metadata for computing nav links
-const NAV_META = {
-  hero:       { href: '#listen', label: 'Listen'       },
-  grc:        { href: '#grc', label: 'GRC 2026'        },
-  schedule:   { href: '#schedule', label: 'Schedule'   },
-  shows:      { href: '#shows', label: 'Shows'         },
-  participate: { href: '#participate', label: 'Participate' },
-  donate:     { href: '#donate', label: 'Donate', highlight: true },
-  about:      { href: '#about', label: 'About'         },
-};
-
-// Metadata for section numbering
-const SECTION_NUM_META = {
-  grc: 'GRC',
-  schedule: 'Schedule',
-  shows: 'Shows',
-  participate: 'Participate',
-  donate: 'Support',
-  about: 'About',
-};
-
-// Compute nav links from blocks in order
-const navLinks = home.blocks
-  .filter(block => NAV_META[block.type])
-  .map(block => NAV_META[block.type]);
-
-// Compute section numbers
-const sectionNumbers = {};
-let sectionCount = 0;
-home.blocks.forEach(block => {
-  if (SECTION_NUM_META[block.type]) {
-    sectionCount++;
-    sectionNumbers[block.type] = String(sectionCount).padStart(2, '0');
-  }
-});
-
-// Function to get component props based on block type
-function getBlockProps(block: any) {
-  const baseProps = {};
-
-  switch (block.type) {
-    case 'grc':
-      return { ...baseProps, grc, number: sectionNumbers.grc };
-    case 'schedule':
-      return { ...baseProps, schedule, number: sectionNumbers.schedule };
-    case 'shows':
-      return { ...baseProps, shows, number: sectionNumbers.shows };
-    case 'participate':
-      return { ...baseProps, number: sectionNumbers.participate };
-    case 'donate':
-      return { ...baseProps, donateCfg, number: sectionNumbers.donate };
-    case 'about':
-      return { ...baseProps, number: sectionNumbers.about };
-    case 'hero':
-      return { ...baseProps, tagline: station.tagline, heroBody: station.heroBody };
-    case 'grcBanner':
-      return { ...baseProps, bannerText: grc.bannerText };
-    case 'nav':
-      return { ...baseProps, links: navLinks };
-    case 'footer':
-      return { ...baseProps, links: navLinks };
-    case 'text':
-      return { ...baseProps, body: block.body || '' };
-    case 'quote':
-      return { ...baseProps, text: block.text || '', attribution: block.attribution };
-    case 'image':
-      return { ...baseProps, image: block.image || '', alt: block.alt || '', caption: block.caption };
-    case 'cta':
-      return { ...baseProps, heading: block.heading || '', subtext: block.subtext || '', buttonLabel: block.buttonLabel || '', buttonHref: block.buttonHref || '' };
-    default:
-      return baseProps;
-  }
-}
+const showCount = Object.keys(rawShows).length;
 ---
 
-<Layout>
-  {home.blocks.map(block => {
-    const Component = blockRegistry[block.type];
+<DaylightLayout title="WPNX 107.7 FM — Community Radio in Formation" activePath="/">
+  <div class="dl-head">
+    <p class="dl-head__a">WPNX<br />107.7</p>
+    <p class="dl-head__b">ON-AIR<br />TARGET<br /><span style="color:var(--color-ink)">SEPT 2026</span></p>
+  </div>
 
-    if (!Component) {
-      console.warn(`[HomePage] Unknown block type: "${block.type}" — skipping`);
-      return null;
-    }
+  <section class="dl-section">
+    <p class="dl-section__title">{station.tagline}</p>
+    <div class="hero-prose">
+      {station.heroBody.split('\n\n').map((para: string) => <p>{para}</p>)}
+    </div>
+    <div class="dl-cta-row">
+      <a href="/participate" class="dl-btn dl-btn--primary">Get Involved</a>
+      <a href="/donate" class="dl-btn">Support the Station</a>
+    </div>
+  </section>
 
-    const props = getBlockProps(block);
-    return <Component {...props} />;
-  })}
-</Layout>
+  <section class="dl-section">
+    <p class="dl-section__title">STATION LOG</p>
+    <div class="archive-table" role="table" aria-label="Station milestones">
+      <div class="archive-row" role="row">
+        <span class="archive-row__num" role="cell">2025</span>
+        <span class="archive-row__main" role="cell">
+          Transmitter secured
+          <span class="archive-row__sub">{station.transmitterAddress.replace(/\n/g, ', ')}</span>
+        </span>
+        <span class="archive-row__status" role="cell">Done</span>
+      </div>
+      <div class="archive-row" role="row">
+        <span class="archive-row__num" role="cell">2025</span>
+        <span class="archive-row__main" role="cell">
+          Shows announced
+          <span class="archive-row__sub">First roster for on-air launch</span>
+        </span>
+        <span class="archive-row__status" role="cell">{showCount}</span>
+      </div>
+      <div class="archive-row archive-row--current" role="row">
+        <span class="archive-row__num" role="cell">2026</span>
+        <span class="archive-row__main" role="cell">
+          On-air target
+          <span class="archive-row__sub">First broadcast, Downtown Pensacola</span>
+        </span>
+        <span class="archive-row__status" role="cell"><span class="archive-dot" aria-hidden="true"></span>Sept 2026</span>
+      </div>
+    </div>
+    <a href="/shows" class="dl-btn" style="margin-top:1.75rem;display:inline-block;">View All Shows →</a>
+  </section>
+
+  <style>
+    .hero-prose p { line-height: 1.85; margin-bottom: 1.1em; max-width: 68ch; }
+    .dl-cta-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  </style>
+</DaylightLayout>

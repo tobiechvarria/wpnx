@@ -1,0 +1,140 @@
+---
+import DaylightLayout from '../layouts/DaylightLayout.astro';
+
+const rawShows = import.meta.glob('../content/shows/*.json', { eager: true, import: 'default' });
+const shows = Object.values(rawShows).sort(
+  (a: any, b: any) => String(a.id).localeCompare(String(b.id))
+);
+---
+
+<DaylightLayout title="Shows — WPNX 107.7 FM" activePath="/shows">
+  <div class="dl-head">
+    <p class="dl-head__a">SHOWS</p>
+    <p class="dl-head__b">{shows.length} <span style="color:var(--color-ink)">ON DEMAND</span></p>
+  </div>
+
+  <section class="dl-section">
+    <p class="dl-section__title">Programming from Radio Free Pensacola — the roster grows as WPNX grows.</p>
+    <div class="archive-table" role="table" aria-label="Show roster">
+      {shows.map((show: any) => {
+        const hasAudio = Boolean(show.src);
+        return (
+          <div class="archive-row show-row" role="row" data-src={show.src || ''}>
+            <span class="archive-row__num" role="cell">{show.id}</span>
+            <span class="archive-row__main" role="cell">
+              {show.show}{show.host ? <em class="show-row__host"> {show.host}</em> : null}
+              <span class="archive-row__sub">{show.episode}</span>
+            </span>
+            <span class="archive-row__status" role="cell">
+              {hasAudio ? (
+                <button class="show-row__btn" aria-label={`Play ${show.show} — ${show.episode}`} data-play-btn>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="show-row__icon show-row__icon--play"><path d="M8 5v14l11-7z"/></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="show-row__icon show-row__icon--pause" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+              ) : (
+                <span class="show-row__badge">Coming Soon</span>
+              )}
+            </span>
+            {hasAudio && (
+              <div class="show-row__tray" data-tray aria-hidden="true">
+                <span data-time>0:00</span>
+                <div class="show-row__progress" data-progress-wrap><div class="show-row__fill" data-progress-fill></div></div>
+                <span data-duration>--:--</span>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+    <a href="/participate" class="dl-btn dl-btn--primary" style="margin-top:1.75rem;display:inline-block;">Submit a Show Proposal</a>
+  </section>
+
+  <style>
+    .show-row { position: relative; flex-wrap: wrap; }
+    .show-row__host { font-style: italic; color: var(--color-muted); font-size: 0.88em; }
+    .show-row__btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--color-rule); background: transparent; color: var(--color-ink); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s ease, border-color 0.15s ease; }
+    .show-row__btn:hover, .show-row__btn.is-playing { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+    .show-row__icon { width: 10px; height: 10px; fill: currentColor; pointer-events: none; }
+    .show-row__badge { font-family: var(--f-mono); font-size: 0.6rem; color: var(--color-muted); border: 1px dashed var(--color-rule); padding: 0.2rem 0.5rem; white-space: nowrap; }
+    .show-row__tray { display: none; grid-column: 1 / -1; align-items: center; gap: 0.75rem; width: 100%; padding-top: 0.6rem; font-family: var(--f-mono); font-size: 0.62rem; color: var(--color-muted); }
+    .show-row__tray.is-open { display: flex; }
+    .show-row__progress { flex: 1; height: 2px; background: var(--color-rule); cursor: pointer; }
+    .show-row__fill { height: 100%; background: var(--color-accent); width: 0%; }
+  </style>
+
+  <script>
+    document.addEventListener('astro:page-load', () => {
+      document.querySelectorAll<HTMLElement>('.show-row').forEach((row) => {
+        if (row.dataset.wired === '1') return;
+        row.dataset.wired = '1';
+        const src = row.dataset.src;
+        if (!src) return;
+        const btn = row.querySelector<HTMLButtonElement>('[data-play-btn]');
+        const tray = row.querySelector<HTMLElement>('[data-tray]');
+        const timeEl = row.querySelector<HTMLElement>('[data-time]');
+        const durEl = row.querySelector<HTMLElement>('[data-duration]');
+        const fillEl = row.querySelector<HTMLElement>('[data-progress-fill]');
+        const progressWrap = row.querySelector<HTMLElement>('[data-progress-wrap]');
+        const iconPlay = btn?.querySelector('.show-row__icon--play') as HTMLElement | null;
+        const iconPause = btn?.querySelector('.show-row__icon--pause') as HTMLElement | null;
+        if (!btn || !tray || !timeEl || !durEl || !fillEl) return;
+
+        const audio = new Audio();
+        audio.preload = 'none';
+        function fmtTime(s: number): string {
+          if (!isFinite(s)) return '--:--';
+          const m = Math.floor(s / 60);
+          const ss = Math.floor(s % 60).toString().padStart(2, '0');
+          return `${m}:${ss}`;
+        }
+        const win = window as any;
+        function stopActive(): void {
+          if (win.__dlActiveAudio && win.__dlActiveAudio !== audio) {
+            win.__dlActiveAudio.pause();
+            win.__dlActiveRow?.querySelector('[data-play-btn]')?.classList.remove('is-playing');
+            const p = win.__dlActiveRow?.querySelector('.show-row__icon--play') as HTMLElement | null;
+            const pa = win.__dlActiveRow?.querySelector('.show-row__icon--pause') as HTMLElement | null;
+            if (p) p.style.display = '';
+            if (pa) pa.style.display = 'none';
+            win.__dlActiveTray?.classList.remove('is-open');
+          }
+        }
+        function setPlaying(playing: boolean): void {
+          btn!.classList.toggle('is-playing', playing);
+          if (iconPlay) iconPlay.style.display = playing ? 'none' : '';
+          if (iconPause) iconPause.style.display = playing ? '' : 'none';
+          btn!.setAttribute('aria-label', playing ? 'Pause episode' : 'Play episode');
+          tray!.classList.toggle('is-open', playing);
+          tray!.setAttribute('aria-hidden', playing ? 'false' : 'true');
+        }
+        audio.addEventListener('loadedmetadata', () => { durEl!.textContent = fmtTime(audio.duration); });
+        audio.addEventListener('timeupdate', () => {
+          timeEl!.textContent = fmtTime(audio.currentTime);
+          if (audio.duration) fillEl!.style.width = ((audio.currentTime / audio.duration) * 100).toFixed(2) + '%';
+        });
+        audio.addEventListener('ended', () => { setPlaying(false); win.__dlActiveAudio = null; win.__dlActiveRow = null; win.__dlActiveTray = null; });
+        progressWrap?.addEventListener('click', (e: MouseEvent) => {
+          if (!audio.duration) return;
+          const rect = progressWrap.getBoundingClientRect();
+          audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+        });
+        btn.addEventListener('click', (e: Event) => {
+          e.stopPropagation();
+          const isThisPlaying = win.__dlActiveAudio === audio && !audio.paused;
+          if (isThisPlaying) {
+            audio.pause();
+            setPlaying(false);
+          } else {
+            stopActive();
+            if (!audio.src) audio.src = src;
+            audio.play().catch(() => {});
+            setPlaying(true);
+            win.__dlActiveAudio = audio;
+            win.__dlActiveRow = row;
+            win.__dlActiveTray = tray;
+          }
+        });
+      });
+    });
+  </script>
+</DaylightLayout>
