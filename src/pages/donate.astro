@@ -9,23 +9,25 @@ import donateCfg from '../content/donate/tiers.json';
     <p class="dl-head__b">KEEP IT<br /><span style="color:var(--color-ink)">FREE</span></p>
   </div>
 
-  <section class="dl-section">
-    <p style="font-family:var(--f-mono); font-size:0.85rem; color:var(--color-muted); line-height:1.8; max-width:60ch; margin-bottom:2rem;">{donateCfg.intro}</p>
+  <section class="dl-section" style="display:grid; grid-template-columns:1fr 1fr; gap:3rem;">
+    <div class="donate-tiers">
+      <p style="font-family:var(--f-mono); font-size:0.85rem; color:var(--color-muted); line-height:1.8; max-width:60ch; margin-bottom:2rem;">{donateCfg.intro}</p>
 
-    <div class="archive-table" role="table" aria-label="Donation tiers">
-      {donateCfg.tiers.map((tier: any) => (
-        <div class:list={['archive-row', { 'archive-row--current': tier.featured }]} role="row">
-          <span class="archive-row__num" role="cell">/mo</span>
-          <span class="archive-row__main" role="cell">{tier.name}{tier.featured ? ' · Most Impactful' : ''}</span>
-          <span class="archive-row__status" role="cell" style="font-size:1rem; color:var(--color-ink); text-transform:none;">
-            {tier.featured && <span class="archive-dot" aria-hidden="true"></span>}
-            ${tier.amount}
-          </span>
-        </div>
-      ))}
+      <div class="archive-table" role="table" aria-label="Donation tiers">
+        {donateCfg.tiers.map((tier: any) => (
+          <div class:list={['archive-row', { 'archive-row--current': tier.featured }]} role="row">
+            <span class="archive-row__num" role="cell">/mo</span>
+            <span class="archive-row__main" role="cell">{tier.name}{tier.featured ? ' · Most Impactful' : ''}</span>
+            <span class="archive-row__status" role="cell" style="font-size:1rem; color:var(--color-ink); text-transform:none;">
+              {tier.featured && <span class="archive-dot" aria-hidden="true"></span>}
+              ${tier.amount}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <p style="font-family:var(--f-mono); font-size:0.68rem; color:var(--color-muted); margin:1.5rem 0 0;">Powered by Zeffy — $0 platform fees. Free Radio Pensacola is a registered nonprofit.</p>
     </div>
-
-    <p style="font-family:var(--f-mono); font-size:0.68rem; color:var(--color-muted); margin:1.5rem 0 2rem;">Powered by Zeffy — $0 platform fees. Free Radio Pensacola is a registered nonprofit.</p>
 
     <div class="embed-box">
       <div data-zeffy-embed data-form-url="/embed/donation-form/donate-to-help-us-run-freely"></div>
@@ -40,7 +42,10 @@ import donateCfg from '../content/donate/tiers.json';
   </section>
 
   <style>
-    .embed-box { border-top: 1px solid var(--color-rule); padding-top: 1.5rem; color-scheme: light; }
+    .embed-box { color-scheme: light; }
     .embed-box :global([data-zeffy-embed]) { margin: 0 !important; }
+    @media (max-width: 760px) {
+      .dl-section[style] { display: flex !important; flex-direction: column; gap: 2rem !important; }
+    }
   </style>
 </DaylightLayout>
