@@ -67,9 +67,9 @@ const navLinks = [
             ))}
           </ul>
 
-          <span class="dl-nav__status">
+          <span class="dl-nav__status" id="dlNavStatus">
             <span class="dl-nav__dot" aria-hidden="true"></span>
-            Pre-Launch
+            <span id="dlNavStatusText">Pre-Launch</span>
           </span>
         </nav>
 
@@ -125,6 +125,29 @@ const navLinks = [
             links.classList.remove('is-open');
             toggle.setAttribute('aria-expanded', 'false');
           }));
+        }
+
+        // ── Now-playing badge — re-queried each page-load since the nav (unlike
+        // the player) isn't transition:persist'd, so its interval is re-armed
+        // here and the previous page's interval is cleared first. ──
+        const statusText = document.getElementById('dlNavStatusText') as HTMLElement | null;
+        if (statusText) {
+          const win = window as any;
+          if (win.__dlNowPlayingInterval) clearInterval(win.__dlNowPlayingInterval);
+
+          const updateNowPlaying = async () => {
+            try {
+              const res = await fetch('/api/now-playing');
+              const data = await res.json();
+              statusText.textContent = data.live && data.artist && data.song
+                ? `On Air · ${data.artist} — ${data.song}`
+                : 'Pre-Launch';
+            } catch {
+              statusText.textContent = 'Pre-Launch';
+            }
+          };
+          updateNowPlaying();
+          win.__dlNowPlayingInterval = setInterval(updateNowPlaying, 45000);
         }
 
         // ── Persistent stream player — guarded so a persisted node is only wired once ──

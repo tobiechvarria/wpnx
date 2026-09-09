@@ -2,6 +2,7 @@ node_modules/
 dist/
 .DS_Store
 .env
+.dev.vars
 .wrangler/
 
 # local-only scratch/source archives, not part of the deployed site
