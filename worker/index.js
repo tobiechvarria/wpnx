@@ -9,18 +9,15 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/api/now-playing') {
-      return handleNowPlaying(env);
+      return handleNowPlaying(env, url.searchParams.has('debug'));
     }
     return env.ASSETS.fetch(request);
   },
 };
 
-async function handleNowPlaying(env) {
+async function handleNowPlaying(env, debug) {
   const apiKey = env.SPINITRON_API_KEY;
-  if (!apiKey) {
-    console.error('now-playing: SPINITRON_API_KEY not set');
-    return offAir();
-  }
+  if (!apiKey) return offAir(debug, 'no-key');
 
   let res;
   try {
@@ -28,30 +25,23 @@ async function handleNowPlaying(env) {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
   } catch (e) {
-    console.error('now-playing: fetch to Spinitron failed', e);
-    return offAir();
+    return offAir(debug, 'fetch-error', String(e));
   }
   if (!res.ok) {
-    console.error('now-playing: Spinitron returned', res.status, await res.text().catch(() => ''));
-    return offAir();
+    return offAir(debug, 'bad-status', `${res.status} ${await res.text().catch(() => '')}`);
   }
 
-  const data = await res.json().catch((e) => {
-    console.error('now-playing: could not parse Spinitron response', e);
-    return null;
-  });
-  const spin = data?.items?.[0];
-  if (!spin?.start) {
-    console.log('now-playing: no current spin from Spinitron (station likely off-air)');
-    return offAir();
-  }
+  const data = await res.json().catch(() => null);
+  if (!data) return offAir(debug, 'bad-json');
+  const spin = data.items?.[0];
+  if (!spin?.start) return offAir(debug, 'no-spin', debug ? JSON.stringify(data) : undefined);
 
   const start = Date.parse(spin.start);
   const durationMs = (spin.duration || 0) * 1000;
   const end = start + durationMs;
   const live = Date.now() <= end + LIVE_GRACE_MS;
 
-  if (!live) return offAir();
+  if (!live) return offAir(debug, 'spin-expired');
 
   return json({
     live: true,
@@ -61,8 +51,8 @@ async function handleNowPlaying(env) {
   });
 }
 
-function offAir() {
-  return json({ live: false });
+function offAir(debug, reason, detail) {
+  return json(debug ? { live: false, reason, detail } : { live: false });
 }
 
 function json(body) {
