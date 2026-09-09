@@ -17,21 +17,34 @@ export default {
 
 async function handleNowPlaying(env) {
   const apiKey = env.SPINITRON_API_KEY;
-  if (!apiKey) return offAir();
+  if (!apiKey) {
+    console.error('now-playing: SPINITRON_API_KEY not set');
+    return offAir();
+  }
 
   let res;
   try {
     res = await fetch('https://spinitron.com/api/spins?count=1', {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
-  } catch {
+  } catch (e) {
+    console.error('now-playing: fetch to Spinitron failed', e);
     return offAir();
   }
-  if (!res.ok) return offAir();
+  if (!res.ok) {
+    console.error('now-playing: Spinitron returned', res.status, await res.text().catch(() => ''));
+    return offAir();
+  }
 
-  const data = await res.json().catch(() => null);
+  const data = await res.json().catch((e) => {
+    console.error('now-playing: could not parse Spinitron response', e);
+    return null;
+  });
   const spin = data?.items?.[0];
-  if (!spin?.start) return offAir();
+  if (!spin?.start) {
+    console.log('now-playing: no current spin from Spinitron (station likely off-air)');
+    return offAir();
+  }
 
   const start = Date.parse(spin.start);
   const durationMs = (spin.duration || 0) * 1000;
