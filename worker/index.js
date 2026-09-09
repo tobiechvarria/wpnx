@@ -11,9 +11,37 @@ export default {
     if (url.pathname === '/api/now-playing') {
       return handleNowPlaying(env, url.searchParams.has('debug'));
     }
+    if (url.pathname === '/api/shows') {
+      return handleShows(env);
+    }
     return env.ASSETS.fetch(request);
   },
 };
+
+// Temporary: lets us check what's actually scheduled in Spinitron before
+// deciding whether /shows should read from here instead of the static
+// content/shows/*.json roster. Remove once that decision is made, or keep
+// and build on it if we go with Spinitron as the source of truth.
+async function handleShows(env) {
+  const apiKey = env.SPINITRON_API_KEY;
+  if (!apiKey) return json({ error: 'no-key' });
+
+  let res;
+  try {
+    res = await fetch('https://spinitron.com/api/shows?count=200', {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+  } catch (e) {
+    return json({ error: 'fetch-error', detail: String(e) });
+  }
+  if (!res.ok) return json({ error: 'bad-status', status: res.status });
+
+  const data = await res.json().catch(() => null);
+  return json({
+    count: data?.items?.length ?? 0,
+    shows: (data?.items ?? []).map((s) => ({ id: s.id, title: s.title, category: s.category })),
+  });
+}
 
 async function handleNowPlaying(env, debug) {
   const apiKey = env.SPINITRON_API_KEY;
