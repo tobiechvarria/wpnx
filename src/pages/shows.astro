@@ -15,68 +15,147 @@ const shows = Object.values(rawShows).sort(
 
   <section class="dl-section">
     <p class="dl-section__title">Programming from Radio Free Pensacola — the roster grows as WPNX grows.</p>
-    <div class="archive-table" role="table" aria-label="Show roster">
+
+    <div class="show-grid">
       {shows.map((show: any) => {
         const hasAudio = Boolean(show.src);
+        const mark = show.title.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '??';
         return (
-          <div class="archive-row show-row" role="row" data-src={show.src || ''}>
-            <span class="archive-row__num" role="cell">{show.id}</span>
-            <span class="archive-row__main" role="cell">
-              {show.show}{show.host ? <em class="show-row__host"> {show.host}</em> : null}
-              <span class="archive-row__sub">{show.episode}</span>
-            </span>
-            <span class="archive-row__status" role="cell">
+          <article class="show-card" data-src={show.src || ''}>
+            <div class="show-card__art" aria-hidden="true">
+              <span class="show-card__mark">{mark}</span>
+            </div>
+
+            <div class="show-card__body">
+              <p class="show-card__title">{show.title}</p>
+              {show.host && <p class="show-card__host">{show.host}</p>}
+              <p class="show-card__episode">{show.episode_name}</p>
+            </div>
+
+            <div class="show-card__action">
               {hasAudio ? (
-                <button class="show-row__btn" aria-label={`Play ${show.show} — ${show.episode}`} data-play-btn>
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="show-row__icon show-row__icon--play"><path d="M8 5v14l11-7z"/></svg>
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="show-row__icon show-row__icon--pause" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <button class="show-card__btn" aria-label={`Play ${show.title} — ${show.episode_name}`} data-play-btn>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="show-card__icon show-card__icon--play"><path d="M8 5v14l11-7z"/></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="show-card__icon show-card__icon--pause" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                  <span>Play episode</span>
                 </button>
               ) : (
-                <span class="show-row__badge">Coming Soon</span>
+                <span class="show-card__badge">Coming Soon</span>
               )}
-            </span>
+            </div>
+
             {hasAudio && (
-              <div class="show-row__tray" data-tray aria-hidden="true">
+              <div class="show-card__tray" data-tray aria-hidden="true">
                 <span data-time>0:00</span>
-                <div class="show-row__progress" data-progress-wrap><div class="show-row__fill" data-progress-fill></div></div>
+                <div class="show-card__progress" data-progress-wrap><div class="show-card__fill" data-progress-fill></div></div>
                 <span data-duration>--:--</span>
               </div>
             )}
-          </div>
+          </article>
         );
       })}
     </div>
-    <a href="/participate" class="dl-btn dl-btn--primary" style="margin-top:1.75rem;display:inline-block;">Submit a Show Proposal</a>
+
+    <a href="/participate" class="dl-btn dl-btn--primary" style="margin-top:2rem;display:inline-block;">Submit a Show Proposal</a>
   </section>
 
   <style>
-    .show-row { position: relative; flex-wrap: wrap; }
-    .show-row__host { font-style: italic; color: var(--color-muted); font-size: 0.88em; }
-    .show-row__btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--color-rule); background: transparent; color: var(--color-ink); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s ease, border-color 0.15s ease; }
-    .show-row__btn:hover, .show-row__btn.is-playing { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
-    .show-row__icon { width: 10px; height: 10px; fill: currentColor; pointer-events: none; }
-    .show-row__badge { font-family: var(--f-mono); font-size: 0.6rem; color: var(--color-muted); border: 1px dashed var(--color-rule); padding: 0.2rem 0.5rem; white-space: nowrap; }
-    .show-row__tray { display: none; grid-column: 1 / -1; align-items: center; gap: 0.75rem; width: 100%; padding-top: 0.6rem; font-family: var(--f-mono); font-size: 0.62rem; color: var(--color-muted); }
-    .show-row__tray.is-open { display: flex; }
-    .show-row__progress { flex: 1; height: 2px; background: var(--color-rule); cursor: pointer; }
-    .show-row__fill { height: 100%; background: var(--color-accent); width: 0%; }
+    .show-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 2px;
+      background: var(--color-rule);
+      border: 1px solid var(--color-rule);
+    }
+
+    .show-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--color-paper);
+      position: relative;
+    }
+
+    .show-card__art {
+      aspect-ratio: 1;
+      background: var(--color-ink);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+    }
+    .show-card__mark {
+      font-family: var(--f-display);
+      color: var(--color-accent);
+      font-size: clamp(3.5rem, 13cqi, 6rem);
+      line-height: 0.78;
+      letter-spacing: -0.01em;
+      padding: 0 0.1em;
+      transform: translateY(0.12em);
+      transition: color 0.2s ease, transform 0.25s ease;
+    }
+    .show-card:hover .show-card__mark,
+    .show-card:focus-within .show-card__mark { color: var(--color-paper); transform: translateY(0.12em) translateX(0.05em) scale(1.04); }
+
+    .show-card__body { padding: 1rem 1.1rem 0.75rem; flex: 1; }
+    .show-card__title {
+      font-family: var(--f-display); font-size: 1.15rem; letter-spacing: 0.01em;
+      line-height: 1.15; margin: 0 0 0.3rem;
+    }
+    .show-card__host {
+      font-family: var(--f-mono); font-size: 0.68rem; letter-spacing: 0.04em;
+      color: var(--color-accent-dark); margin: 0 0 0.5rem; text-transform: uppercase;
+    }
+    .show-card__episode {
+      font-family: var(--f-mono); font-size: 0.68rem; color: var(--color-muted);
+      line-height: 1.5; margin: 0;
+    }
+
+    .show-card__action { padding: 0 1.1rem 1.1rem; }
+    .show-card__badge {
+      font-family: var(--f-mono); font-size: 0.6rem; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--color-muted); border: 1px dashed var(--color-rule); padding: 0.3rem 0.6rem; display: inline-block;
+    }
+    .show-card__btn {
+      display: flex; align-items: center; gap: 0.5rem; width: 100%;
+      font-family: var(--f-mono); font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
+      border: 1px solid var(--color-ink); background: transparent; color: var(--color-ink);
+      padding: 0.5rem 0.75rem; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
+    }
+    .show-card__btn:hover, .show-card__btn:focus-visible, .show-card__btn.is-playing {
+      background: var(--color-accent); border-color: var(--color-accent); color: #fff;
+    }
+    .show-card__icon { width: 12px; height: 12px; fill: currentColor; pointer-events: none; flex-shrink: 0; }
+
+    .show-card__tray {
+      display: none; align-items: center; gap: 0.6rem; padding: 0 1.1rem 1rem;
+      font-family: var(--f-mono); font-size: 0.6rem; color: var(--color-muted);
+    }
+    .show-card__tray.is-open { display: flex; }
+    .show-card__progress { flex: 1; height: 2px; background: var(--color-rule); cursor: pointer; }
+    .show-card__fill { height: 100%; background: var(--color-accent); width: 0%; }
+
+    .show-card__art { container-type: inline-size; }
+
+    @media (max-width: 560px) {
+      .show-grid { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 
   <script>
     document.addEventListener('astro:page-load', () => {
-      document.querySelectorAll<HTMLElement>('.show-row').forEach((row) => {
-        if (row.dataset.wired === '1') return;
-        row.dataset.wired = '1';
-        const src = row.dataset.src;
+      document.querySelectorAll<HTMLElement>('.show-card').forEach((card) => {
+        if (card.dataset.wired === '1') return;
+        card.dataset.wired = '1';
+        const src = card.dataset.src;
         if (!src) return;
-        const btn = row.querySelector<HTMLButtonElement>('[data-play-btn]');
-        const tray = row.querySelector<HTMLElement>('[data-tray]');
-        const timeEl = row.querySelector<HTMLElement>('[data-time]');
-        const durEl = row.querySelector<HTMLElement>('[data-duration]');
-        const fillEl = row.querySelector<HTMLElement>('[data-progress-fill]');
-        const progressWrap = row.querySelector<HTMLElement>('[data-progress-wrap]');
-        const iconPlay = btn?.querySelector('.show-row__icon--play') as HTMLElement | null;
-        const iconPause = btn?.querySelector('.show-row__icon--pause') as HTMLElement | null;
+        const btn = card.querySelector<HTMLButtonElement>('[data-play-btn]');
+        const tray = card.querySelector<HTMLElement>('[data-tray]');
+        const timeEl = card.querySelector<HTMLElement>('[data-time]');
+        const durEl = card.querySelector<HTMLElement>('[data-duration]');
+        const fillEl = card.querySelector<HTMLElement>('[data-progress-fill]');
+        const progressWrap = card.querySelector<HTMLElement>('[data-progress-wrap]');
+        const iconPlay = btn?.querySelector('.show-card__icon--play') as HTMLElement | null;
+        const iconPause = btn?.querySelector('.show-card__icon--pause') as HTMLElement | null;
         if (!btn || !tray || !timeEl || !durEl || !fillEl) return;
 
         const audio = new Audio();
@@ -91,9 +170,9 @@ const shows = Object.values(rawShows).sort(
         function stopActive(): void {
           if (win.__dlActiveAudio && win.__dlActiveAudio !== audio) {
             win.__dlActiveAudio.pause();
-            win.__dlActiveRow?.querySelector('[data-play-btn]')?.classList.remove('is-playing');
-            const p = win.__dlActiveRow?.querySelector('.show-row__icon--play') as HTMLElement | null;
-            const pa = win.__dlActiveRow?.querySelector('.show-row__icon--pause') as HTMLElement | null;
+            win.__dlActiveCard?.querySelector('[data-play-btn]')?.classList.remove('is-playing');
+            const p = win.__dlActiveCard?.querySelector('.show-card__icon--play') as HTMLElement | null;
+            const pa = win.__dlActiveCard?.querySelector('.show-card__icon--pause') as HTMLElement | null;
             if (p) p.style.display = '';
             if (pa) pa.style.display = 'none';
             win.__dlActiveTray?.classList.remove('is-open');
@@ -103,7 +182,8 @@ const shows = Object.values(rawShows).sort(
           btn!.classList.toggle('is-playing', playing);
           if (iconPlay) iconPlay.style.display = playing ? 'none' : '';
           if (iconPause) iconPause.style.display = playing ? '' : 'none';
-          btn!.setAttribute('aria-label', playing ? 'Pause episode' : 'Play episode');
+          const label = btn!.querySelector('span');
+          if (label) label.textContent = playing ? 'Pause episode' : 'Play episode';
           tray!.classList.toggle('is-open', playing);
           tray!.setAttribute('aria-hidden', playing ? 'false' : 'true');
         }
@@ -112,7 +192,7 @@ const shows = Object.values(rawShows).sort(
           timeEl!.textContent = fmtTime(audio.currentTime);
           if (audio.duration) fillEl!.style.width = ((audio.currentTime / audio.duration) * 100).toFixed(2) + '%';
         });
-        audio.addEventListener('ended', () => { setPlaying(false); win.__dlActiveAudio = null; win.__dlActiveRow = null; win.__dlActiveTray = null; });
+        audio.addEventListener('ended', () => { setPlaying(false); win.__dlActiveAudio = null; win.__dlActiveCard = null; win.__dlActiveTray = null; });
         progressWrap?.addEventListener('click', (e: MouseEvent) => {
           if (!audio.duration) return;
           const rect = progressWrap.getBoundingClientRect();
@@ -130,7 +210,7 @@ const shows = Object.values(rawShows).sort(
             audio.play().catch(() => {});
             setPlaying(true);
             win.__dlActiveAudio = audio;
-            win.__dlActiveRow = row;
+            win.__dlActiveCard = card;
             win.__dlActiveTray = tray;
           }
         });
