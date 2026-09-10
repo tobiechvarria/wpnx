@@ -29,11 +29,86 @@ import donateCfg from '../content/donate/tiers.json';
       <p style="font-family:var(--f-mono); font-size:0.68rem; color:var(--color-muted); margin:1.5rem 0 0;">Powered by Zeffy — $0 platform fees. Free Radio Pensacola is a registered nonprofit.</p>
     </div>
 
-    <div class="embed-box">
+    <div class="embed-box" data-embed-box>
+      <div class="embed-skeleton" data-embed-skeleton aria-hidden="true">
+        <div class="embed-skeleton__bar embed-skeleton__bar--title"></div>
+        <div class="embed-skeleton__row">
+          <div class="embed-skeleton__bar embed-skeleton__bar--pill"></div>
+          <div class="embed-skeleton__bar embed-skeleton__bar--pill"></div>
+        </div>
+        <div class="embed-skeleton__grid">
+          <div class="embed-skeleton__bar embed-skeleton__bar--tile"></div>
+          <div class="embed-skeleton__bar embed-skeleton__bar--tile"></div>
+          <div class="embed-skeleton__bar embed-skeleton__bar--tile"></div>
+          <div class="embed-skeleton__bar embed-skeleton__bar--tile"></div>
+        </div>
+        <div class="embed-skeleton__bar embed-skeleton__bar--input"></div>
+        <div class="embed-skeleton__bar embed-skeleton__bar--line"></div>
+        <div class="embed-skeleton__bar embed-skeleton__bar--line"></div>
+        <div class="embed-skeleton__bar embed-skeleton__bar--cta"></div>
+      </div>
       <div data-zeffy-embed data-form-url="/embed/donation-form/donate-to-help-us-run-freely"></div>
       <div data-zeffy-embed-fallback style="display:none;">
         <div style="position:relative;overflow:hidden;height:450px;width:100%;"><iframe title='Donation form powered by Zeffy' style='position:absolute;border:0;top:0;left:0;bottom:0;right:0;width:100%;height:100%' data-zeffy-embed-src='https://www.zeffy.com/embed/donation-form/donate-to-help-us-run-freely' allowpaymentrequest allowTransparency="true"></iframe></div>
       </div>
+      <script data-astro-rerun>
+        // Must run (and its observer must attach) before the Zeffy script
+        // below, since Astro's view-transition router awaits that script's
+        // load before firing astro:page-load — by then its iframe already
+        // exists, so a listener registered on that event always arrives too
+        // late. Script order in the DOM is our ordering guarantee instead;
+        // data-astro-rerun keeps both this and the Zeffy script un-skipped
+        // on every client-side revisit (Astro dedupes by content otherwise).
+        //
+        // Plain JS, deliberately: any extra attribute (data-astro-rerun
+        // included) makes Astro skip its normal TS-stripping/bundling pass
+        // on this tag and ship the tag body to the browser untouched, so
+        // TypeScript syntax here (generics, `as`, `!`) would be a runtime
+        // syntax error instead of being compiled away.
+        (function () {
+          var box = document.querySelector('[data-embed-box]');
+          var skeleton = box && box.querySelector('[data-embed-skeleton]');
+          var embed = box && box.querySelector('[data-zeffy-embed]');
+          var fallback = box && box.querySelector('[data-zeffy-embed-fallback]');
+          if (!box || !skeleton || !embed) return;
+
+          var done = false;
+          function hideSkeleton() {
+            if (done) return;
+            done = true;
+            skeleton.classList.add('is-hidden');
+            window.setTimeout(function () { skeleton.style.display = 'none'; }, 320);
+          }
+
+          function watchIframe(iframe) {
+            iframe.addEventListener('load', hideSkeleton, { once: true });
+          }
+
+          var existing = embed.querySelector('iframe');
+          if (existing) watchIframe(existing);
+
+          var embedObserver = new MutationObserver(function () {
+            var iframe = embed.querySelector('iframe');
+            if (iframe) {
+              watchIframe(iframe);
+              embedObserver.disconnect();
+            }
+          });
+          embedObserver.observe(embed, { childList: true });
+
+          var fallbackObserver = fallback
+            ? new MutationObserver(function () {
+                if (fallback.style.display !== 'none') hideSkeleton();
+              })
+            : null;
+          if (fallbackObserver) {
+            fallbackObserver.observe(fallback, { attributes: true, attributeFilter: ['style'] });
+          }
+
+          // Safety net: never leave the skeleton up forever if nothing above fires.
+          window.setTimeout(hideSkeleton, 8000);
+        })();
+      </script>
       <script
         src="https://www.zeffy.com/embed/v2/zeffy-embed.js"
         data-astro-rerun
@@ -43,10 +118,46 @@ import donateCfg from '../content/donate/tiers.json';
   </section>
 
   <style>
-    .embed-box { color-scheme: light; }
+    .embed-box { color-scheme: light; position: relative; min-height: 620px; }
     .embed-box :global([data-zeffy-embed]) { margin: 0 !important; }
     @media (max-width: 760px) {
       .dl-section[style] { display: flex !important; flex-direction: column; gap: 2rem !important; }
+    }
+
+    .embed-skeleton {
+      position: absolute; inset: 0; z-index: 1;
+      background: #111; border-radius: 16px;
+      padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem;
+      overflow: hidden;
+      transition: opacity 0.3s ease;
+    }
+    .embed-skeleton.is-hidden { opacity: 0; pointer-events: none; }
+
+    .embed-skeleton__bar {
+      position: relative; overflow: hidden; border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .embed-skeleton__bar::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+      animation: embed-shimmer 1.6s ease-in-out infinite;
+    }
+    .embed-skeleton__bar--title { height: 1.4rem; width: 65%; }
+    .embed-skeleton__row { display: flex; gap: 0.6rem; }
+    .embed-skeleton__row .embed-skeleton__bar--pill { height: 2.4rem; flex: 1; border-radius: 8px; }
+    .embed-skeleton__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .embed-skeleton__bar--tile { height: 2.6rem; border-radius: 8px; }
+    .embed-skeleton__bar--input { height: 2.8rem; border-radius: 8px; }
+    .embed-skeleton__bar--line { height: 2.6rem; border-radius: 8px; }
+    .embed-skeleton__bar--cta { height: 2.8rem; border-radius: 8px; margin-top: auto; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .embed-skeleton__bar::after { animation: none; }
+    }
+
+    @keyframes embed-shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
     }
   </style>
 </DaylightLayout>
