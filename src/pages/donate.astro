@@ -4,6 +4,18 @@ import donateCfg from '../content/donate/tiers.json';
 ---
 
 <DaylightLayout title="Support — WPNX 107.7 FM" activePath="/donate">
+  <Fragment slot="head">
+    <!--
+      Zeffy's embed is a cross-origin script + iframe (their own live app,
+      not something we can meaningfully cache/serve ourselves — see chat).
+      This just opens the connection to their origin early so the DNS/TLS
+      handshake overlaps with the rest of the page load instead of starting
+      cold once the browser hits the <script src> further down the page.
+    -->
+    <link rel="preconnect" href="https://www.zeffy.com" crossorigin />
+    <link rel="dns-prefetch" href="https://www.zeffy.com" />
+  </Fragment>
+
   <div class="dl-head">
     <p class="dl-head__a">SUPPORT</p>
     <p class="dl-head__b">KEEP IT<br /><span style="color:var(--color-ink)">FREE</span></p>
