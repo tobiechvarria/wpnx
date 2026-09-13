@@ -81,9 +81,9 @@ const navLinks = [
           </button>
           <span class="dl-player__freq">107.7</span>
           <span class="dl-player__label">WPNX — Free Radio Pensacola</span>
-          <span class="dl-player__status" id="dlPlayerStatus">Click to play · Loops continuously</span>
+          <span class="dl-player__status" id="dlPlayerStatus">Click to play · Live stream</span>
           <input type="range" class="dl-player__vol" id="dlPlayerVol" min="0" max="1" step="0.05" value="0.8" aria-label="Volume" />
-          <audio id="dlPlayerAudio" loop preload="none" aria-label="The KLF — Elvis On The Radio, Steel Guitar In My Soul"></audio>
+          <audio id="dlPlayerAudio" preload="none" aria-label="WPNX 107.7 FM — live stream"></audio>
         </div>
       </header>
 
@@ -162,7 +162,7 @@ const navLinks = [
 
         const iconPlay = btn.querySelector('.dl-player__icon--play') as HTMLElement;
         const iconPause = btn.querySelector('.dl-player__icon--pause') as HTMLElement;
-        const SRC = '/the-klf-elvis-on-the-radio.mp3';
+        const SRC = '/api/stream';
         audio.volume = parseFloat(volSlider.value);
 
         function setPlaying(playing: boolean) {
@@ -170,20 +170,24 @@ const navLinks = [
           iconPlay.style.display = playing ? 'none' : '';
           iconPause.style.display = playing ? '' : 'none';
           btn!.setAttribute('aria-label', playing ? 'Pause' : 'Play');
-          statusEl!.textContent = playing ? 'Now playing · Loops continuously' : 'Click to play · Loops continuously';
+          statusEl!.textContent = playing ? 'Live · On Air' : 'Click to play · Live stream';
         }
 
         btn.addEventListener('click', () => {
           if (audio.paused) {
-            if (!audio.src) audio.src = SRC;
-            audio.play().catch(() => { statusEl!.textContent = 'Could not load audio'; });
+            // Re-set src on every play so a paused/reconnected listener always
+            // rejoins at the live edge rather than resuming a stale buffer.
+            audio.src = SRC;
+            audio.play().catch(() => { statusEl!.textContent = 'Could not load stream'; });
           } else {
             audio.pause();
+            audio.removeAttribute('src');
+            audio.load();
           }
         });
         audio.addEventListener('playing', () => setPlaying(true));
         audio.addEventListener('pause', () => setPlaying(false));
-        audio.addEventListener('error', () => { statusEl!.textContent = 'Could not load audio'; setPlaying(false); });
+        audio.addEventListener('error', () => { statusEl!.textContent = 'Could not load stream'; setPlaying(false); });
         volSlider.addEventListener('input', () => { audio.volume = parseFloat(volSlider.value); });
 
         // Reflect current state in case this page-load is a transition back

@@ -1,9 +1,15 @@
-// Static-asset Worker with one live route bolted on: /api/now-playing proxies
-// Spinitron server-side, since Spinitron's API refuses browser-origin calls
-// and the key can't sit in client JS. Everything else falls through to the
-// static build in ./dist untouched (see wrangler.jsonc run_worker_first).
+// Static-asset Worker with a couple of live routes bolted on. Everything
+// else falls through to the static build in ./dist untouched (see
+// wrangler.jsonc run_worker_first).
 
 const LIVE_GRACE_MS = 5 * 60 * 1000; // spin logging can lag the actual airing
+
+// Icecast source is plain HTTP (no TLS on that port) and wpnx.org is HTTPS,
+// so a browser <audio src> pointed straight at it is mixed content and gets
+// silently blocked/upgraded-and-failed. /api/stream fetches it server-side
+// (no mixed-content rule applies to a Worker's own fetch) and pipes the
+// response straight through — see chat for how this was diagnosed.
+const ICECAST_STREAM_URL = 'http://158.101.102.214:8000/stream';
 
 export default {
   async fetch(request, env) {
@@ -11,9 +17,44 @@ export default {
     if (url.pathname === '/api/now-playing') {
       return handleNowPlaying(env, url.searchParams.has('debug'));
     }
+    if (url.pathname === '/api/stream') {
+      return handleStream(request);
+    }
     return env.ASSETS.fetch(request);
   },
 };
+
+async function handleStream(request) {
+  const headers = {
+    'Content-Type': 'audio/mpeg',
+    'Cache-Control': 'no-store',
+    'Access-Control-Allow-Origin': '*',
+  };
+
+  // A live stream body never ends, so returning it for a HEAD (or anything
+  // but GET) hangs the runtime trying to close out that body. Answer those
+  // with headers only, without ever opening the upstream connection.
+  if (request.method !== 'GET') {
+    return new Response(null, { status: 200, headers });
+  }
+
+  let upstream;
+  try {
+    upstream = await fetch(ICECAST_STREAM_URL, {
+      method: 'GET',
+      headers: { 'Icy-MetaData': '0' }, // keep the body pure audio, no inline metadata frames
+      cf: { cacheTtl: 0 },
+    });
+  } catch (e) {
+    return new Response('Stream unavailable', { status: 502 });
+  }
+  if (!upstream.ok || !upstream.body) {
+    return new Response('Stream unavailable', { status: 502 });
+  }
+
+  headers['Content-Type'] = upstream.headers.get('Content-Type') || 'audio/mpeg';
+  return new Response(upstream.body, { status: 200, headers });
+}
 
 async function handleNowPlaying(env, debug) {
   const apiKey = env.SPINITRON_API_KEY;
