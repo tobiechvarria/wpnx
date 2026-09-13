@@ -34,9 +34,35 @@ export default {
     if (url.pathname === '/api/stream') {
       return handleStream(request);
     }
+    if (url.pathname === '/api/shows') {
+      return handleShows(env);
+    }
     return env.ASSETS.fetch(request);
   },
 };
+
+// Temporary: same check as before, to see whether shows have been entered
+// into Spinitron's schedule yet. Remove once answered.
+async function handleShows(env) {
+  const apiKey = env.SPINITRON_API_KEY;
+  if (!apiKey) return json({ error: 'no-key' });
+
+  let res;
+  try {
+    res = await fetch('https://spinitron.com/api/shows?count=200', {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+  } catch (e) {
+    return json({ error: 'fetch-error', detail: String(e) });
+  }
+  if (!res.ok) return json({ error: 'bad-status', status: res.status });
+
+  const data = await res.json().catch(() => null);
+  return json({
+    count: data?.items?.length ?? 0,
+    shows: (data?.items ?? []).map((s) => ({ id: s.id, title: s.title, category: s.category })),
+  });
+}
 
 async function handleStream(request) {
   const url = new URL(request.url);
