@@ -61,13 +61,44 @@ body.daylight { scrollbar-color: #bbb var(--color-paper-alt); }
 .dl-nav__toggle[aria-expanded="true"] span:nth-child(2) { transform: translateY(-3px) rotate(-45deg); }
 
 .dl-player { display: flex; align-items: center; gap: 0.85rem; padding: 0.6rem 1.5rem; height: 48px; }
-.dl-player__btn { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--color-ink); background: transparent; color: var(--color-ink); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
-.dl-player__btn:hover, .dl-player__btn.is-playing { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+
+.dl-player__transport { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+
+.dl-player__btn, .dl-player__volbtn { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--color-ink); background: transparent; color: var(--color-ink); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+.dl-player__btn:hover, .dl-player__btn.is-playing,
+.dl-player__volbtn:hover, .dl-player__vol.is-open .dl-player__volbtn { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
 .dl-player__icon { width: 12px; height: 12px; fill: currentColor; pointer-events: none; }
+.dl-player__volbtn .dl-player__icon { width: 14px; height: 14px; }
+
+.dl-player__vol { position: relative; flex-shrink: 0; }
+.dl-player__volpopover {
+  display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  margin-top: 0.6rem; padding: 0.75rem 0.6rem; background: var(--color-ink); border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+.dl-player__volpopover::before {
+  content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-bottom-color: var(--color-ink);
+}
+.dl-player__vol.is-open .dl-player__volpopover { display: block; }
+
+.dl-player__volslider {
+  writing-mode: vertical-lr; direction: rtl; appearance: slider-vertical; -webkit-appearance: slider-vertical;
+  width: 4px; height: 72px; accent-color: var(--color-accent); cursor: pointer;
+}
+
 .dl-player__freq { font-family: var(--f-display); font-size: 1.1rem; color: var(--color-accent); flex-shrink: 0; }
-.dl-player__label { font-family: var(--f-mono); font-size: 0.66rem; color: var(--color-muted); flex-shrink: 0; }
-.dl-player__status { font-family: var(--f-mono); font-size: 0.62rem; color: var(--color-muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dl-player__vol { width: 80px; accent-color: var(--color-accent); flex-shrink: 0; }
+
+.dl-player__id { display: flex; flex-direction: column; justify-content: center; gap: 0.1rem; min-width: 0; flex-shrink: 0; }
+.dl-player__label { font-family: var(--f-mono); font-size: 0.66rem; color: var(--color-ink); font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.dl-player__status { font-family: var(--f-mono); font-size: 0.62rem; color: var(--color-muted); white-space: nowrap; }
+
+.dl-player__nowplaying {
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 0.1rem;
+  margin-left: auto; min-width: 0; text-align: right;
+}
+.dl-player__song { font-family: var(--f-mono); font-size: 0.68rem; color: var(--color-ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+.dl-player__artist { font-family: var(--f-mono); font-size: 0.62rem; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
 
 @media (max-width: 860px) {
   .dl-nav__toggle { display: flex; }
@@ -79,9 +110,13 @@ body.daylight { scrollbar-color: #bbb var(--color-paper-alt); }
   .dl-nav__link { height: auto; padding: 0.85rem 1.5rem; border-bottom: 1px solid var(--color-rule); }
   .dl-nav__status { display: none; }
   .dl-player { flex-wrap: wrap; height: auto; padding: 0.6rem 1rem; }
-  .dl-player__label { display: none; }
-  .dl-player__vol { display: none; }
+  .dl-player__freq { display: none; }
+  .dl-player__nowplaying { display: none; }
   .dl-player__status { flex-basis: 100%; order: 4; }
+}
+
+@media (max-width: 480px) {
+  .dl-player__label { max-width: 140px; }
 }
 
 /* ── Main / page headline system ── */

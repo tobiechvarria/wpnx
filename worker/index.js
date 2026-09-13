@@ -34,28 +34,42 @@ export default {
     if (url.pathname === '/api/stream') {
       return handleStream(request);
     }
-    if (url.pathname === '/api/playlist-debug') {
-      return handlePlaylistDebug(env, url.searchParams.get('id'));
-    }
     return env.ASSETS.fetch(request);
   },
 };
 
-async function handlePlaylistDebug(env, id) {
+// Playlist -> DJ name barely ever changes (a playlist runs a full hour) while
+// /api/now-playing gets polled every 45s per listener, so this holds the one
+// most-recently-resolved playlist_id -> persona name for the Worker
+// isolate's lifetime rather than re-fetching playlist+persona on every poll.
+// Isolates recycle on their own schedule, which just means an occasional
+// cache miss — never staleness, since it's still keyed by playlist_id.
+let djCache = { playlistId: null, name: null };
+
+async function resolveDj(env, playlistId) {
+  if (!playlistId) return null;
+  if (djCache.playlistId === playlistId) return djCache.name;
+
   const apiKey = env.SPINITRON_API_KEY;
-  if (!apiKey) return json({ error: 'no-key' });
-  const res = await fetch(`https://spinitron.com/api/playlists/${id}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
-  const data = await res.json().catch(() => null);
-  let persona = null;
-  if (data?.persona_id) {
-    const pRes = await fetch(`https://spinitron.com/api/personas/${data.persona_id}`, {
+  try {
+    const pRes = await fetch(`https://spinitron.com/api/playlists/${playlistId}`, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
-    persona = await pRes.json().catch(() => null);
+    const playlist = await pRes.json().catch(() => null);
+    if (!playlist?.persona_id) {
+      djCache = { playlistId, name: null };
+      return null;
+    }
+    const personaRes = await fetch(`https://spinitron.com/api/personas/${playlist.persona_id}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    const persona = await personaRes.json().catch(() => null);
+    const name = persona?.name || null;
+    djCache = { playlistId, name };
+    return name;
+  } catch {
+    return null;
   }
-  return json({ playlist: data, persona });
 }
 
 async function handleStream(request) {
@@ -195,12 +209,14 @@ async function handleNowPlaying(env, debug) {
 
   if (!live) return offAir(debug, 'spin-expired');
 
+  const dj = await resolveDj(env, spin.playlist_id);
+
   return json({
     live: true,
     artist: spin.artist || null,
     song: spin.song || null,
     release: spin.release || null,
-    _rawSpin: debug ? spin : undefined,
+    dj,
   });
 }
 

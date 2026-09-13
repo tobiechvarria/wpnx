@@ -75,14 +75,50 @@ const navLinks = [
         </nav>
 
         <div class="dl-player" id="dlPlayer" transition:persist="dl-player">
-          <button class="dl-player__btn" id="dlPlayerBtn" aria-label="Play">
-            <svg class="dl-player__icon dl-player__icon--play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z"/></svg>
-            <svg class="dl-player__icon dl-player__icon--pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-          </button>
+          <div class="dl-player__transport">
+            <button class="dl-player__btn" id="dlPlayerBtn" aria-label="Play">
+              <svg class="dl-player__icon dl-player__icon--play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="dl-player__icon dl-player__icon--pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+
+            <div class="dl-player__vol" id="dlPlayerVolWrap">
+              <button class="dl-player__volbtn" id="dlPlayerVolBtn" aria-label="Volume" aria-expanded="false" aria-controls="dlPlayerVolPopover">
+                <svg class="dl-player__icon dl-player__icon--vol-on" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M4 9v6h4l5 5V4L8 9H4z"/>
+                  <path d="M15.3 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M17.8 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <svg class="dl-player__icon dl-player__icon--vol-off" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:none">
+                  <path d="M4 9v6h4l5 5V4L8 9H4z"/>
+                  <path d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <div class="dl-player__volpopover" id="dlPlayerVolPopover" role="group" aria-label="Volume level">
+                <input
+                  type="range"
+                  class="dl-player__volslider"
+                  id="dlPlayerVol"
+                  min="0" max="1" step="0.05" value="0.8"
+                  orient="vertical"
+                  aria-label="Volume"
+                  aria-orientation="vertical"
+                />
+              </div>
+            </div>
+          </div>
+
           <span class="dl-player__freq">107.7</span>
-          <span class="dl-player__label">WPNX — Free Radio Pensacola</span>
-          <span class="dl-player__status" id="dlPlayerStatus">Click to play · Live stream</span>
-          <input type="range" class="dl-player__vol" id="dlPlayerVol" min="0" max="1" step="0.05" value="0.8" aria-label="Volume" />
+
+          <div class="dl-player__id">
+            <span class="dl-player__label" id="dlPlayerLabel">WPNX — Free Radio Pensacola</span>
+            <span class="dl-player__status" id="dlPlayerStatus">Click to play · Live stream</span>
+          </div>
+
+          <div class="dl-player__nowplaying" id="dlPlayerNowPlaying" hidden>
+            <span class="dl-player__song" id="dlPlayerSong"></span>
+            <span class="dl-player__artist" id="dlPlayerArtist"></span>
+          </div>
+
           <audio id="dlPlayerAudio" preload="none" aria-label="WPNX 107.7 FM — live stream"></audio>
         </div>
       </header>
@@ -128,23 +164,47 @@ const navLinks = [
           }));
         }
 
-        // ── Now-playing badge — re-queried each page-load since the nav (unlike
-        // the player) isn't transition:persist'd, so its interval is re-armed
-        // here and the previous page's interval is cleared first. ──
-        const statusText = document.getElementById('dlNavStatusText') as HTMLElement | null;
-        if (statusText) {
+        // ── Now-playing poll — drives the nav badge (rewired each page-load,
+        // since it isn't transition:persist'd) and the player's DJ name /
+        // song+artist display (persisted, but harmless to re-query each
+        // page-load: same DOM nodes throughout). One shared fetch/interval
+        // for both, re-armed here with the previous page's interval cleared
+        // first, rather than polling the same endpoint twice in parallel. ──
+        const navStatusText = document.getElementById('dlNavStatusText') as HTMLElement | null;
+        const playerLabel = document.getElementById('dlPlayerLabel') as HTMLElement | null;
+        const nowPlayingBox = document.getElementById('dlPlayerNowPlaying') as HTMLElement | null;
+        const songEl = document.getElementById('dlPlayerSong') as HTMLElement | null;
+        const artistEl = document.getElementById('dlPlayerArtist') as HTMLElement | null;
+
+        if (navStatusText || playerLabel) {
           const win = window as any;
           if (win.__dlNowPlayingInterval) clearInterval(win.__dlNowPlayingInterval);
 
           const updateNowPlaying = async () => {
+            let data: any = null;
             try {
               const res = await fetch('/api/now-playing');
-              const data = await res.json();
-              statusText.textContent = data.live && data.artist && data.song
-                ? `On Air · ${data.artist} — ${data.song}`
-                : 'Pre-Launch';
+              data = await res.json();
             } catch {
-              statusText.textContent = 'Pre-Launch';
+              data = null;
+            }
+
+            const hasSong = !!(data?.live && data.artist && data.song);
+
+            if (navStatusText) {
+              navStatusText.textContent = hasSong ? `On Air · ${data.artist} — ${data.song}` : 'Pre-Launch';
+            }
+            if (playerLabel) {
+              playerLabel.textContent = data?.dj || 'WPNX — Free Radio Pensacola';
+            }
+            if (nowPlayingBox && songEl && artistEl) {
+              if (hasSong) {
+                songEl.textContent = data.song;
+                artistEl.textContent = data.artist;
+                nowPlayingBox.hidden = false;
+              } else {
+                nowPlayingBox.hidden = true;
+              }
             }
           };
           updateNowPlaying();
@@ -155,13 +215,18 @@ const navLinks = [
         const audio = document.getElementById('dlPlayerAudio') as HTMLAudioElement | null;
         const btn = document.getElementById('dlPlayerBtn') as HTMLButtonElement | null;
         const statusEl = document.getElementById('dlPlayerStatus') as HTMLElement | null;
+        const volWrap = document.getElementById('dlPlayerVolWrap') as HTMLElement | null;
+        const volBtn = document.getElementById('dlPlayerVolBtn') as HTMLButtonElement | null;
+        const volPopover = document.getElementById('dlPlayerVolPopover') as HTMLElement | null;
         const volSlider = document.getElementById('dlPlayerVol') as HTMLInputElement | null;
-        if (!audio || !btn || !statusEl || !volSlider) return;
+        if (!audio || !btn || !statusEl || !volWrap || !volBtn || !volPopover || !volSlider) return;
         if (audio.dataset.wired === '1') return;
         audio.dataset.wired = '1';
 
         const iconPlay = btn.querySelector('.dl-player__icon--play') as HTMLElement;
         const iconPause = btn.querySelector('.dl-player__icon--pause') as HTMLElement;
+        const iconVolOn = volBtn.querySelector('.dl-player__icon--vol-on') as HTMLElement;
+        const iconVolOff = volBtn.querySelector('.dl-player__icon--vol-off') as HTMLElement;
         const SRC = '/api/stream';
         audio.volume = parseFloat(volSlider.value);
 
@@ -171,6 +236,17 @@ const navLinks = [
           iconPause.style.display = playing ? '' : 'none';
           btn!.setAttribute('aria-label', playing ? 'Pause' : 'Play');
           statusEl!.textContent = playing ? 'Live · On Air' : 'Click to play · Live stream';
+        }
+
+        function reflectVolume() {
+          const muted = audio.volume === 0;
+          iconVolOn.style.display = muted ? 'none' : '';
+          iconVolOff.style.display = muted ? '' : 'none';
+        }
+
+        function closeVolPopover() {
+          volWrap!.classList.remove('is-open');
+          volBtn!.setAttribute('aria-expanded', 'false');
         }
 
         btn.addEventListener('click', () => {
@@ -192,11 +268,27 @@ const navLinks = [
         audio.addEventListener('playing', () => setPlaying(true));
         audio.addEventListener('pause', () => setPlaying(false));
         audio.addEventListener('error', () => { statusEl!.textContent = 'Could not load stream'; setPlaying(false); });
-        volSlider.addEventListener('input', () => { audio.volume = parseFloat(volSlider.value); });
+
+        volBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const open = volWrap!.classList.toggle('is-open');
+          volBtn!.setAttribute('aria-expanded', String(open));
+        });
+        volSlider.addEventListener('input', () => {
+          audio.volume = parseFloat(volSlider.value);
+          reflectVolume();
+        });
+        // Popover is a lightweight click-to-reveal, not a modal: any click
+        // elsewhere on the page (or navigating away) closes it.
+        document.addEventListener('click', (e) => {
+          if (!volWrap!.contains(e.target as Node)) closeVolPopover();
+        });
+        document.addEventListener('astro:before-swap', closeVolPopover);
 
         // Reflect current state in case this page-load is a transition back
         // to an already-playing persisted audio element.
         setPlaying(!audio.paused);
+        reflectVolume();
       }
 
       // astro:page-load covers every view-transition navigation reliably.
