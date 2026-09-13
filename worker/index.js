@@ -34,9 +34,29 @@ export default {
     if (url.pathname === '/api/stream') {
       return handleStream(request);
     }
+    if (url.pathname === '/api/playlist-debug') {
+      return handlePlaylistDebug(env, url.searchParams.get('id'));
+    }
     return env.ASSETS.fetch(request);
   },
 };
+
+async function handlePlaylistDebug(env, id) {
+  const apiKey = env.SPINITRON_API_KEY;
+  if (!apiKey) return json({ error: 'no-key' });
+  const res = await fetch(`https://spinitron.com/api/playlists/${id}`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  const data = await res.json().catch(() => null);
+  let persona = null;
+  if (data?.persona_id) {
+    const pRes = await fetch(`https://spinitron.com/api/personas/${data.persona_id}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    persona = await pRes.json().catch(() => null);
+  }
+  return json({ playlist: data, persona });
+}
 
 async function handleStream(request) {
   const url = new URL(request.url);
