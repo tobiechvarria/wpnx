@@ -1,7 +1,7 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"compatibility_date": "2026-06-20",
-	"compatibility_flags": ["global_fetch_strictly_public", "allow_custom_ports"],
+	"compatibility_flags": ["global_fetch_strictly_public"],
 	"name": "wpnx",
 	"main": "worker/index.js",
 	"assets": {

@@ -2,14 +2,28 @@
 // else falls through to the static build in ./dist untouched (see
 // wrangler.jsonc run_worker_first).
 
+import { connect } from 'cloudflare:sockets';
+
 const LIVE_GRACE_MS = 5 * 60 * 1000; // spin logging can lag the actual airing
 
 // Icecast source is plain HTTP (no TLS on that port) and wpnx.org is HTTPS,
 // so a browser <audio src> pointed straight at it is mixed content and gets
-// silently blocked/upgraded-and-failed. /api/stream fetches it server-side
-// (no mixed-content rule applies to a Worker's own fetch) and pipes the
+// silently blocked/upgraded-and-failed. /api/stream proxies it server-side
+// (no mixed-content rule applies to a Worker's own connection) and pipes the
 // response straight through — see chat for how this was diagnosed.
-const ICECAST_STREAM_URL = 'http://158.101.102.214:8000/stream';
+//
+// This can't be a plain fetch(): Workers deployed to production silently
+// rewrite a non-standard port in a fetch() URL to the scheme's default port
+// (80 for http://), even with the allow_custom_ports compatibility flag set
+// (a known workerd gap — github.com/cloudflare/workerd/issues/2955). That
+// was confirmed here directly: fetching this exact URL landed on a totally
+// unrelated Cloudflare-fronted site sharing that IP on port 80 (its 403
+// response came back with real `server: cloudflare` / `cf-ray` headers).
+// A raw TCP socket via cloudflare:sockets connects to the exact port we ask
+// for, so this hand-rolls the HTTP/1.0 request over that socket instead.
+const ICECAST_HOST = '158.101.102.214';
+const ICECAST_PORT = 8000;
+const ICECAST_PATH = '/stream';
 
 export default {
   async fetch(request, env) {
@@ -40,26 +54,97 @@ async function handleStream(request) {
     return new Response(null, { status: 200, headers });
   }
 
-  let upstream;
+  let socket;
   try {
-    upstream = await fetch(ICECAST_STREAM_URL, {
-      method: 'GET',
-      headers: { 'Icy-MetaData': '0' }, // keep the body pure audio, no inline metadata frames
-      cf: { cacheTtl: 0 },
-    });
+    socket = connect({ hostname: ICECAST_HOST, port: ICECAST_PORT });
+    const writer = socket.writable.getWriter();
+    const req =
+      `GET ${ICECAST_PATH} HTTP/1.0\r\n` +
+      `Host: ${ICECAST_HOST}:${ICECAST_PORT}\r\n` +
+      `Icy-MetaData: 0\r\n` + // keep the body pure audio, no inline metadata frames
+      `Connection: close\r\n\r\n`;
+    await writer.write(new TextEncoder().encode(req));
+    writer.releaseLock();
   } catch (e) {
     return debug
-      ? json({ error: 'fetch-threw', detail: String(e), stack: e && e.stack })
-      : new Response('Stream unavailable', { status: 502 });
-  }
-  if (!upstream.ok || !upstream.body) {
-    return debug
-      ? json({ error: 'bad-upstream', status: upstream.status, statusText: upstream.statusText, headers: [...upstream.headers.entries()] })
+      ? json({ error: 'connect-threw', detail: String(e) })
       : new Response('Stream unavailable', { status: 502 });
   }
 
-  headers['Content-Type'] = upstream.headers.get('Content-Type') || 'audio/mpeg';
-  return new Response(upstream.body, { status: 200, headers });
+  const reader = socket.readable.getReader();
+  const CRLFCRLF = [0x0d, 0x0a, 0x0d, 0x0a];
+  let buffered = new Uint8Array(0);
+  let headerEnd = -1;
+
+  // Icecast's greeting (status line + headers, ending \r\n\r\n) always
+  // arrives well before it starts streaming megabytes of audio, so reading
+  // a handful of small chunks to find that boundary is cheap and bounded —
+  // unlike trying to buffer the (unbounded) body that follows it.
+  try {
+    while (headerEnd === -1) {
+      const { value, done } = await reader.read();
+      if (done) throw new Error('socket closed before headers completed');
+      const combined = new Uint8Array(buffered.length + value.length);
+      combined.set(buffered, 0);
+      combined.set(value, buffered.length);
+      buffered = combined;
+      headerEnd = findSubsequence(buffered, CRLFCRLF);
+      if (buffered.length > 16384 && headerEnd === -1) {
+        throw new Error('response headers exceeded 16KB without terminating');
+      }
+    }
+  } catch (e) {
+    reader.cancel().catch(() => {});
+    return debug
+      ? json({ error: 'header-read-failed', detail: String(e) })
+      : new Response('Stream unavailable', { status: 502 });
+  }
+
+  const headerText = new TextDecoder().decode(buffered.slice(0, headerEnd));
+  const leadingBody = buffered.slice(headerEnd + CRLFCRLF.length);
+  const statusLine = headerText.split('\r\n')[0] || '';
+  const statusMatch = statusLine.match(/^HTTP\/1\.[01]\s+(\d{3})/);
+  const upstreamStatus = statusMatch ? parseInt(statusMatch[1], 10) : null;
+
+  if (upstreamStatus !== 200) {
+    reader.cancel().catch(() => {});
+    return debug
+      ? json({ error: 'bad-upstream-status', statusLine, headerText })
+      : new Response('Stream unavailable', { status: 502 });
+  }
+
+  const contentTypeMatch = headerText.match(/^Content-Type:\s*(.+)$/im);
+  if (contentTypeMatch) headers['Content-Type'] = contentTypeMatch[1].trim();
+
+  const body = new ReadableStream({
+    start(controller) {
+      if (leadingBody.length > 0) controller.enqueue(leadingBody);
+    },
+    async pull(controller) {
+      const { value, done } = await reader.read();
+      if (done) {
+        controller.close();
+        return;
+      }
+      controller.enqueue(value);
+    },
+    cancel() {
+      reader.cancel().catch(() => {});
+      socket.close().catch(() => {});
+    },
+  });
+
+  return new Response(body, { status: 200, headers });
+}
+
+function findSubsequence(haystack, needle) {
+  outer: for (let i = 0; i <= haystack.length - needle.length; i++) {
+    for (let j = 0; j < needle.length; j++) {
+      if (haystack[i + j] !== needle[j]) continue outer;
+    }
+    return i;
+  }
+  return -1;
 }
 
 async function handleNowPlaying(env, debug) {
