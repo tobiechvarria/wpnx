@@ -25,6 +25,8 @@ export default {
 };
 
 async function handleStream(request) {
+  const url = new URL(request.url);
+  const debug = url.searchParams.has('debug');
   const headers = {
     'Content-Type': 'audio/mpeg',
     'Cache-Control': 'no-store',
@@ -46,10 +48,14 @@ async function handleStream(request) {
       cf: { cacheTtl: 0 },
     });
   } catch (e) {
-    return new Response('Stream unavailable', { status: 502 });
+    return debug
+      ? json({ error: 'fetch-threw', detail: String(e), stack: e && e.stack })
+      : new Response('Stream unavailable', { status: 502 });
   }
   if (!upstream.ok || !upstream.body) {
-    return new Response('Stream unavailable', { status: 502 });
+    return debug
+      ? json({ error: 'bad-upstream', status: upstream.status, statusText: upstream.statusText, headers: [...upstream.headers.entries()] })
+      : new Response('Stream unavailable', { status: 502 });
   }
 
   headers['Content-Type'] = upstream.headers.get('Content-Type') || 'audio/mpeg';
