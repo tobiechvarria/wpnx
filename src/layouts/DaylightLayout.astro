@@ -180,9 +180,13 @@ const navLinks = [
             audio.src = SRC;
             audio.play().catch(() => { statusEl!.textContent = 'Could not load stream'; });
           } else {
+            // Set UI state synchronously rather than waiting on the 'pause'
+            // event, which fires asynchronously and was arriving too late
+            // (or not at all) to reliably flip the button back to "play".
+            // No need to clear src/load() here either: the play branch above
+            // always re-sets audio.src on the next click regardless.
+            setPlaying(false);
             audio.pause();
-            audio.removeAttribute('src');
-            audio.load();
           }
         });
         audio.addEventListener('playing', () => setPlaying(true));
