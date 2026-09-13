@@ -180,6 +180,7 @@ async function handleNowPlaying(env, debug) {
     artist: spin.artist || null,
     song: spin.song || null,
     release: spin.release || null,
+    _rawSpin: debug ? spin : undefined,
   });
 }
 
