@@ -192,7 +192,9 @@ const navLinks = [
             const hasSong = !!(data?.live && data.artist && data.song);
 
             if (navStatusText) {
-              navStatusText.textContent = hasSong ? `On Air · ${data.artist} — ${data.song}` : 'Pre-Launch';
+              navStatusText.textContent = !data?.live
+                ? 'Pre-Launch'
+                : hasSong ? `On Air · ${data.artist} — ${data.song}` : 'On Air';
             }
             if (playerLabel) {
               playerLabel.textContent = data?.dj || 'WPNX — Free Radio Pensacola';

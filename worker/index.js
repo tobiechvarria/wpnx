@@ -4,8 +4,6 @@
 
 import { connect } from 'cloudflare:sockets';
 
-const LIVE_GRACE_MS = 5 * 60 * 1000; // spin logging can lag the actual airing
-
 // Icecast source is plain HTTP (no TLS on that port) and wpnx.org is HTTPS,
 // so a browser <audio src> pointed straight at it is mixed content and gets
 // silently blocked/upgraded-and-failed. /api/stream proxies it server-side
@@ -171,6 +169,47 @@ async function handleStream(request) {
   return new Response(body, { status: 200, headers });
 }
 
+// Small, finite Icecast responses (unlike the unbounded /stream body) — reads
+// the raw socket to completion (Connection: close) and returns the decoded
+// body. Same raw-TCP approach as handleStream and for the same reason: a
+// plain fetch() to this non-standard port gets silently rewritten to port 80
+// once deployed.
+async function fetchIcecastPath(path) {
+  const socket = connect({ hostname: ICECAST_HOST, port: ICECAST_PORT });
+  const writer = socket.writable.getWriter();
+  const req =
+    `GET ${path} HTTP/1.0\r\n` +
+    `Host: ${ICECAST_HOST}:${ICECAST_PORT}\r\n` +
+    `Connection: close\r\n\r\n`;
+  await writer.write(new TextEncoder().encode(req));
+  writer.releaseLock();
+
+  const reader = socket.readable.getReader();
+  const chunks = [];
+  let total = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    total += value.length;
+  }
+  const combined = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  const text = new TextDecoder().decode(combined);
+  const headerEnd = text.indexOf('\r\n\r\n');
+  if (headerEnd === -1) throw new Error('Icecast response had no header terminator');
+  const statusLine = text.slice(0, text.indexOf('\r\n'));
+  if (!/^HTTP\/1\.[01]\s+200\b/.test(statusLine)) {
+    throw new Error(`Icecast returned ${statusLine}`);
+  }
+  return text.slice(headerEnd + 4);
+}
+
 function findSubsequence(haystack, needle) {
   outer: for (let i = 0; i <= haystack.length - needle.length; i++) {
     for (let j = 0; j < needle.length; j++) {
@@ -181,43 +220,58 @@ function findSubsequence(haystack, needle) {
   return -1;
 }
 
+// Artist/song come straight from Icecast's own live status, not Spinitron:
+// Spinitron's spin log is auto-detected from the stream and can lag the
+// actual audio by minutes (confirmed directly — Icecast's status-json.xsl
+// had already moved to the next track while /api/spins still reported the
+// previous one). Icecast's title updates the instant the source changes, so
+// it's the only genuinely real-time source for what's playing right now.
+// DJ name has no Icecast equivalent, so that part alone still comes from
+// Spinitron's spin -> playlist -> persona chain, resolved independently
+// and best-effort: a Spinitron hiccup shouldn't take down artist/song too.
 async function handleNowPlaying(env, debug) {
-  const apiKey = env.SPINITRON_API_KEY;
-  if (!apiKey) return offAir(debug, 'no-key');
-
-  let res;
+  let body;
   try {
-    res = await fetch('https://spinitron.com/api/spins?count=1', {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
+    body = await fetchIcecastPath('/status-json.xsl');
   } catch (e) {
-    return offAir(debug, 'fetch-error', String(e));
-  }
-  if (!res.ok) {
-    return offAir(debug, 'bad-status', `${res.status} ${await res.text().catch(() => '')}`);
+    return offAir(debug, 'icecast-fetch-failed', String(e));
   }
 
-  const data = await res.json().catch(() => null);
-  if (!data) return offAir(debug, 'bad-json');
-  const spin = data.items?.[0];
-  if (!spin?.start) return offAir(debug, 'no-spin', debug ? JSON.stringify(data) : undefined);
+  let status;
+  try {
+    status = JSON.parse(body);
+  } catch (e) {
+    return offAir(debug, 'bad-icecast-json', String(e));
+  }
 
-  const start = Date.parse(spin.start);
-  const durationMs = (spin.duration || 0) * 1000;
-  const end = start + durationMs;
-  const live = Date.now() <= end + LIVE_GRACE_MS;
+  const rawSource = status.icestats?.source;
+  const source = Array.isArray(rawSource) ? rawSource[0] : rawSource;
+  if (!source) return offAir(debug, 'no-source');
 
-  if (!live) return offAir(debug, 'spin-expired');
+  const title = (source.title || '').trim();
+  const sepIndex = title.indexOf(' - ');
+  const artist = sepIndex === -1 ? null : title.slice(0, sepIndex).trim() || null;
+  const song = sepIndex === -1 ? null : title.slice(sepIndex + 3).trim() || null;
 
-  const dj = await resolveDj(env, spin.playlist_id);
+  let dj = null;
+  try {
+    const apiKey = env.SPINITRON_API_KEY;
+    if (apiKey) {
+      const res = await fetch('https://spinitron.com/api/spins?count=1', {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (res.ok) {
+        const spinData = await res.json().catch(() => null);
+        const playlistId = spinData?.items?.[0]?.playlist_id;
+        if (playlistId) dj = await resolveDj(env, playlistId);
+      }
+    }
+  } catch {
+    // DJ name is best-effort — a Spinitron problem shouldn't hide the
+    // artist/song data we already have straight from Icecast.
+  }
 
-  return json({
-    live: true,
-    artist: spin.artist || null,
-    song: spin.song || null,
-    release: spin.release || null,
-    dj,
-  });
+  return json({ live: true, artist, song, dj });
 }
 
 function offAir(debug, reason, detail) {
