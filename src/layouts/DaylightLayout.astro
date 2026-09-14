@@ -107,11 +107,11 @@ const navLinks = [
             </div>
           </div>
 
-          <span class="dl-player__freq">107.7</span>
-
           <div class="dl-player__id">
+            <span class="dl-player__freq">107.7</span>
+            <span class="dl-player__live-tag">Live</span>
+            <span class="dl-player__divider" aria-hidden="true"></span>
             <span class="dl-player__label" id="dlPlayerLabel">WPNX — Free Radio Pensacola</span>
-            <span class="dl-player__status" id="dlPlayerStatus">Click to play · Live stream</span>
           </div>
 
           <div class="dl-player__nowplaying" id="dlPlayerNowPlaying" hidden>
@@ -214,12 +214,11 @@ const navLinks = [
         // ── Persistent stream player — guarded so a persisted node is only wired once ──
         const audio = document.getElementById('dlPlayerAudio') as HTMLAudioElement | null;
         const btn = document.getElementById('dlPlayerBtn') as HTMLButtonElement | null;
-        const statusEl = document.getElementById('dlPlayerStatus') as HTMLElement | null;
         const volWrap = document.getElementById('dlPlayerVolWrap') as HTMLElement | null;
         const volBtn = document.getElementById('dlPlayerVolBtn') as HTMLButtonElement | null;
         const volPopover = document.getElementById('dlPlayerVolPopover') as HTMLElement | null;
         const volSlider = document.getElementById('dlPlayerVol') as HTMLInputElement | null;
-        if (!audio || !btn || !statusEl || !volWrap || !volBtn || !volPopover || !volSlider) return;
+        if (!audio || !btn || !volWrap || !volBtn || !volPopover || !volSlider) return;
         if (audio.dataset.wired === '1') return;
         audio.dataset.wired = '1';
 
@@ -235,7 +234,6 @@ const navLinks = [
           iconPlay.style.display = playing ? 'none' : '';
           iconPause.style.display = playing ? '' : 'none';
           btn!.setAttribute('aria-label', playing ? 'Pause' : 'Play');
-          statusEl!.textContent = playing ? 'Live · On Air' : 'Click to play · Live stream';
         }
 
         function reflectVolume() {
@@ -254,7 +252,9 @@ const navLinks = [
             // Re-set src on every play so a paused/reconnected listener always
             // rejoins at the live edge rather than resuming a stale buffer.
             audio.src = SRC;
-            audio.play().catch(() => { statusEl!.textContent = 'Could not load stream'; });
+            audio.play().catch(() => {
+              if (playerLabel) playerLabel.textContent = 'Could not load stream';
+            });
           } else {
             // Set UI state synchronously rather than waiting on the 'pause'
             // event, which fires asynchronously and was arriving too late
@@ -267,7 +267,10 @@ const navLinks = [
         });
         audio.addEventListener('playing', () => setPlaying(true));
         audio.addEventListener('pause', () => setPlaying(false));
-        audio.addEventListener('error', () => { statusEl!.textContent = 'Could not load stream'; setPlaying(false); });
+        audio.addEventListener('error', () => {
+          if (playerLabel) playerLabel.textContent = 'Could not load stream';
+          setPlaying(false);
+        });
 
         volBtn.addEventListener('click', (e) => {
           e.stopPropagation();

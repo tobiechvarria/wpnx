@@ -87,11 +87,11 @@ body.daylight { scrollbar-color: #bbb var(--color-paper-alt); }
   width: 4px; height: 72px; accent-color: var(--color-accent); cursor: pointer;
 }
 
+.dl-player__id { display: flex; align-items: center; gap: 0.55rem; min-width: 0; flex-shrink: 0; }
 .dl-player__freq { font-family: var(--f-display); font-size: 1.1rem; color: var(--color-accent); flex-shrink: 0; }
-
-.dl-player__id { display: flex; flex-direction: column; justify-content: center; gap: 0.1rem; min-width: 0; flex-shrink: 0; }
+.dl-player__live-tag { font-family: var(--f-mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent-dark); flex-shrink: 0; }
+.dl-player__divider { width: 1px; height: 14px; background: var(--color-rule); flex-shrink: 0; }
 .dl-player__label { font-family: var(--f-mono); font-size: 0.66rem; color: var(--color-ink); font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
-.dl-player__status { font-family: var(--f-mono); font-size: 0.62rem; color: var(--color-muted); white-space: nowrap; }
 
 .dl-player__nowplaying {
   display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 0.1rem;
@@ -109,10 +109,9 @@ body.daylight { scrollbar-color: #bbb var(--color-paper-alt); }
   .dl-nav__links.is-open { display: flex; }
   .dl-nav__link { height: auto; padding: 0.85rem 1.5rem; border-bottom: 1px solid var(--color-rule); }
   .dl-nav__status { display: none; }
-  .dl-player { flex-wrap: wrap; height: auto; padding: 0.6rem 1rem; }
+  .dl-player { height: auto; padding: 0.6rem 1rem; }
   .dl-player__freq { display: none; }
   .dl-player__nowplaying { display: none; }
-  .dl-player__status { flex-basis: 100%; order: 4; }
 }
 
 @media (max-width: 480px) {
