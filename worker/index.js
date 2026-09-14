@@ -220,6 +220,34 @@ function findSubsequence(haystack, needle) {
   return -1;
 }
 
+// Icecast titles are "Artist - Song" in the clean case, but real station
+// content includes messier ones: a themed show block with no per-track
+// artist ("<blank> - The Phread Show- World Indie Show") or a track missing
+// its song tag ("Shut Eye -"). Searching on the *untrimmed* title matters —
+// trimming first shifts a leading " - " away from index 0 and the split
+// silently fails, which is exactly the bug that made a real, recoverable
+// song title read as null/null here. Whichever half comes back empty after
+// its own trim is null; the caller decides what to do with a partial result.
+function parseIcecastTitle(rawTitle) {
+  const strictIndex = rawTitle.indexOf(' - ');
+  if (strictIndex !== -1) {
+    return {
+      artist: rawTitle.slice(0, strictIndex).trim() || null,
+      song: rawTitle.slice(strictIndex + 3).trim() || null,
+    };
+  }
+  // No "space-dash-space" anywhere — fall back to a bare dash for a title
+  // like "Shut Eye -" where only one side of the separator has a space.
+  const looseIndex = rawTitle.indexOf('-');
+  if (looseIndex !== -1) {
+    return {
+      artist: rawTitle.slice(0, looseIndex).trim() || null,
+      song: rawTitle.slice(looseIndex + 1).trim() || null,
+    };
+  }
+  return { artist: null, song: rawTitle.trim() || null };
+}
+
 // Artist/song come straight from Icecast's own live status, not Spinitron:
 // Spinitron's spin log is auto-detected from the stream and can lag the
 // actual audio by minutes (confirmed directly — Icecast's status-json.xsl
@@ -248,10 +276,7 @@ async function handleNowPlaying(env, debug) {
   const source = Array.isArray(rawSource) ? rawSource[0] : rawSource;
   if (!source) return offAir(debug, 'no-source');
 
-  const title = (source.title || '').trim();
-  const sepIndex = title.indexOf(' - ');
-  const artist = sepIndex === -1 ? null : title.slice(0, sepIndex).trim() || null;
-  const song = sepIndex === -1 ? null : title.slice(sepIndex + 3).trim() || null;
+  const { artist, song } = parseIcecastTitle(source.title || '');
 
   let dj = null;
   try {

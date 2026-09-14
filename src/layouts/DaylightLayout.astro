@@ -189,20 +189,27 @@ const navLinks = [
               data = null;
             }
 
-            const hasSong = !!(data?.live && data.artist && data.song);
+            // Icecast's title is sometimes only half-populated (a themed
+            // show block with no per-track artist, or a track missing its
+            // song tag) — show whichever real half we have rather than
+            // requiring both, which used to hide genuinely good data.
+            const hasAny = !!(data?.live && (data.artist || data.song));
 
             if (navStatusText) {
               navStatusText.textContent = !data?.live
                 ? 'Pre-Launch'
-                : hasSong ? `On Air · ${data.artist} — ${data.song}` : 'On Air';
+                : (data.artist && data.song) ? `On Air · ${data.artist} — ${data.song}`
+                : hasAny ? `On Air · ${data.artist || data.song}`
+                : 'On Air';
             }
             if (playerLabel) {
               playerLabel.textContent = data?.dj || 'WPNX — Free Radio Pensacola';
             }
             if (nowPlayingBox && songEl && artistEl) {
-              if (hasSong) {
-                songEl.textContent = data.song;
-                artistEl.textContent = data.artist;
+              if (hasAny) {
+                songEl.textContent = data.song || data.artist;
+                artistEl.textContent = data.song ? (data.artist || '') : '';
+                artistEl.hidden = !artistEl.textContent;
                 nowPlayingBox.hidden = false;
               } else {
                 nowPlayingBox.hidden = true;
