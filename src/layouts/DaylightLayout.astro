@@ -164,12 +164,15 @@ const navLinks = [
           }));
         }
 
-        // ── Now-playing poll — drives the nav badge (rewired each page-load,
-        // since it isn't transition:persist'd) and the player's DJ name /
-        // song+artist display (persisted, but harmless to re-query each
-        // page-load: same DOM nodes throughout). One shared fetch/interval
-        // for both, re-armed here with the previous page's interval cleared
-        // first, rather than polling the same endpoint twice in parallel. ──
+        // ── Now-playing live feed — drives the nav badge (rewired each
+        // page-load, since it isn't transition:persist'd) and the player's
+        // DJ name / song+artist display (persisted, but harmless to
+        // re-query each page-load: same DOM nodes throughout). Server-sent
+        // events instead of client polling: the Worker itself watches
+        // Icecast every ~4s and only pushes when the payload actually
+        // changes, so a track change reaches the page in seconds instead of
+        // waiting out a poll interval. One shared EventSource for both,
+        // re-armed here with the previous page's connection closed first. ──
         const navStatusText = document.getElementById('dlNavStatusText') as HTMLElement | null;
         const playerLabel = document.getElementById('dlPlayerLabel') as HTMLElement | null;
         const nowPlayingBox = document.getElementById('dlPlayerNowPlaying') as HTMLElement | null;
@@ -178,17 +181,9 @@ const navLinks = [
 
         if (navStatusText || playerLabel) {
           const win = window as any;
-          if (win.__dlNowPlayingInterval) clearInterval(win.__dlNowPlayingInterval);
+          if (win.__dlNowPlayingSource) win.__dlNowPlayingSource.close();
 
-          const updateNowPlaying = async () => {
-            let data: any = null;
-            try {
-              const res = await fetch('/api/now-playing');
-              data = await res.json();
-            } catch {
-              data = null;
-            }
-
+          const applyNowPlaying = (data: any) => {
             // Icecast's title is sometimes only half-populated (a themed
             // show block with no per-track artist, or a track missing its
             // song tag) — show whichever real half we have rather than
@@ -216,8 +211,18 @@ const navLinks = [
               }
             }
           };
-          updateNowPlaying();
-          win.__dlNowPlayingInterval = setInterval(updateNowPlaying, 45000);
+
+          const source = new EventSource('/api/now-playing-stream');
+          source.addEventListener('now-playing', (e: MessageEvent) => {
+            try {
+              applyNowPlaying(JSON.parse(e.data));
+            } catch {
+              // malformed event — wait for the next one rather than guessing
+            }
+          });
+          win.__dlNowPlayingSource = source;
+          // EventSource retries the connection on its own after an error;
+          // nothing to do here beyond letting the browser's default kick in.
         }
 
         // ── Persistent stream player — guarded so a persisted node is only wired once ──

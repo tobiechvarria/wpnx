@@ -29,6 +29,9 @@ export default {
     if (url.pathname === '/api/now-playing') {
       return handleNowPlaying(env, url.searchParams.has('debug'));
     }
+    if (url.pathname === '/api/now-playing-stream') {
+      return handleNowPlayingStream(env);
+    }
     if (url.pathname === '/api/stream') {
       return handleStream(request);
     }
@@ -257,7 +260,7 @@ function parseIcecastTitle(rawTitle) {
 // DJ name has no Icecast equivalent, so that part alone still comes from
 // Spinitron's spin -> playlist -> persona chain, resolved independently
 // and best-effort: a Spinitron hiccup shouldn't take down artist/song too.
-async function handleNowPlaying(env, debug) {
+async function computeNowPlaying(env, debug) {
   let body;
   try {
     body = await fetchIcecastPath('/status-json.xsl');
@@ -296,11 +299,69 @@ async function handleNowPlaying(env, debug) {
     // artist/song data we already have straight from Icecast.
   }
 
-  return json({ live: true, artist, song, dj });
+  return { live: true, artist, song, dj };
+}
+
+async function handleNowPlaying(env, debug) {
+  const data = await computeNowPlaying(env, debug);
+  return json(data);
+}
+
+// Push-based alternative to polling /api/now-playing: the Worker itself
+// polls Icecast every few seconds (cheap — Icecast is on the same private
+// network path as the stream proxy) and only forwards an event to the
+// browser when the payload actually changes, so a track change reaches the
+// page in ~4s instead of waiting out a client-side setInterval. One SSE
+// connection per listener, not one Icecast hit per listener per tick.
+async function handleNowPlayingStream(env) {
+  const encoder = new TextEncoder();
+  let closed = false;
+
+  const body = new ReadableStream({
+    async start(controller) {
+      const send = (event, data) => {
+        if (closed) return;
+        controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+      };
+
+      let last = null;
+      while (!closed) {
+        let data;
+        try {
+          data = await computeNowPlaying(env, false);
+        } catch {
+          data = { live: false };
+        }
+        const key = JSON.stringify(data);
+        if (key !== last) {
+          last = key;
+          send('now-playing', data);
+        } else {
+          // Comment-only heartbeat: keeps intermediate proxies/CDNs from
+          // idling the connection out even when nothing has changed.
+          if (!closed) controller.enqueue(encoder.encode(': ping\n\n'));
+        }
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+      }
+    },
+    cancel() {
+      closed = true;
+    },
+  });
+
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-store',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    },
+  });
 }
 
 function offAir(debug, reason, detail) {
-  return json(debug ? { live: false, reason, detail } : { live: false });
+  return debug ? { live: false, reason, detail } : { live: false };
 }
 
 function json(body) {
