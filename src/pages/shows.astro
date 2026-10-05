@@ -167,8 +167,9 @@ const shows = Object.values(rawShows).sort(
           return `${m}:${ss}`;
         }
         const win = window as any;
-        function stopActive(): void {
-          if (win.__dlActiveAudio && win.__dlActiveAudio !== audio) {
+        // `all` also stops this card's own episode, used when the live stream starts.
+        function stopActive(all = false): void {
+          if (win.__dlActiveAudio && (all || win.__dlActiveAudio !== audio)) {
             win.__dlActiveAudio.pause();
             win.__dlActiveCard?.querySelector('[data-play-btn]')?.classList.remove('is-playing');
             const p = win.__dlActiveCard?.querySelector('.show-card__icon--play') as HTMLElement | null;
@@ -176,8 +177,10 @@ const shows = Object.values(rawShows).sort(
             if (p) p.style.display = '';
             if (pa) pa.style.display = 'none';
             win.__dlActiveTray?.classList.remove('is-open');
+            win.__dlActiveAudio = null;
           }
         }
+        win.__dlStopEpisode = () => stopActive(true);
         function setPlaying(playing: boolean): void {
           btn!.classList.toggle('is-playing', playing);
           if (iconPlay) iconPlay.style.display = playing ? 'none' : '';
@@ -206,6 +209,8 @@ const shows = Object.values(rawShows).sort(
             setPlaying(false);
           } else {
             stopActive();
+            // An episode and the live stream together sound like an echo.
+            win.__dlLiveAudio?.pause();
             if (!audio.src) audio.src = src;
             audio.play().catch(() => {});
             setPlaying(true);
