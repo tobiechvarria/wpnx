@@ -41,3 +41,12 @@ All commands are run from the root of the project, from a terminal:
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+
+## Tests
+
+```
+npm test            # run once
+npm run test:watch  # re-run on save
+```
+
+Vitest runs `src/**/*.test.ts` and `worker/**/*.test.js`. Write the failing test first, then the code. Logic that needs tests should live in a plain module (like `src/lib/playback.ts`) rather than inline in an `.astro` script.

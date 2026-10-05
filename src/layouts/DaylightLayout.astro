@@ -148,6 +148,8 @@ const navLinks = [
 
 
     <script>
+      import { getPlaybackRegistry } from "../lib/playback";
+
       function initDaylightPage() {
         // ── Mobile nav toggle (nav itself is not persisted, rewired every page) ──
         const toggle = document.getElementById('dlNavToggle') as HTMLButtonElement | null;
@@ -235,9 +237,7 @@ const navLinks = [
         if (!audio || !btn || !volWrap || !volBtn || !volPopover || !volSlider) return;
         if (audio.dataset.wired === '1') return;
         audio.dataset.wired = '1';
-        // Episode players (Shows page) pause the live stream through this handle, and the
-        // live stream pauses any playing episode below, so the two can never overlap.
-        (window as any).__dlLiveAudio = audio;
+        const playback = getPlaybackRegistry(window as any);
 
         const iconPlay = btn.querySelector('.dl-player__icon--play') as HTMLElement;
         const iconPause = btn.querySelector('.dl-player__icon--pause') as HTMLElement;
@@ -266,7 +266,6 @@ const navLinks = [
 
         btn.addEventListener('click', () => {
           if (audio.paused) {
-            (window as any).__dlStopEpisode?.();
             // Re-set src on every play so a paused/reconnected listener always
             // rejoins at the live edge rather than resuming a stale buffer.
             audio.src = SRC;
@@ -283,8 +282,15 @@ const navLinks = [
             audio.pause();
           }
         });
-        audio.addEventListener('playing', () => setPlaying(true));
-        audio.addEventListener('pause', () => setPlaying(false));
+        audio.addEventListener('playing', () => {
+          setPlaying(true);
+          // Pauses any episode that is playing, so the two never overlap.
+          playback.claim('live', () => audio.pause());
+        });
+        audio.addEventListener('pause', () => {
+          setPlaying(false);
+          playback.release('live');
+        });
         audio.addEventListener('error', () => {
           if (playerLabel) playerLabel.textContent = 'Could not load stream';
           setPlaying(false);

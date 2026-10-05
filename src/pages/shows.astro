@@ -142,6 +142,8 @@ const shows = Object.values(rawShows).sort(
   </style>
 
   <script>
+    import { getPlaybackRegistry } from '../lib/playback';
+
     document.addEventListener('astro:page-load', () => {
       document.querySelectorAll<HTMLElement>('.show-card').forEach((card) => {
         if (card.dataset.wired === '1') return;
@@ -167,20 +169,8 @@ const shows = Object.values(rawShows).sort(
           return `${m}:${ss}`;
         }
         const win = window as any;
-        // `all` also stops this card's own episode, used when the live stream starts.
-        function stopActive(all = false): void {
-          if (win.__dlActiveAudio && (all || win.__dlActiveAudio !== audio)) {
-            win.__dlActiveAudio.pause();
-            win.__dlActiveCard?.querySelector('[data-play-btn]')?.classList.remove('is-playing');
-            const p = win.__dlActiveCard?.querySelector('.show-card__icon--play') as HTMLElement | null;
-            const pa = win.__dlActiveCard?.querySelector('.show-card__icon--pause') as HTMLElement | null;
-            if (p) p.style.display = '';
-            if (pa) pa.style.display = 'none';
-            win.__dlActiveTray?.classList.remove('is-open');
-            win.__dlActiveAudio = null;
-          }
-        }
-        win.__dlStopEpisode = () => stopActive(true);
+        const playback = getPlaybackRegistry(win);
+        const owner = `episode-${Math.random().toString(36).slice(2)}`;
         function setPlaying(playing: boolean): void {
           btn!.classList.toggle('is-playing', playing);
           if (iconPlay) iconPlay.style.display = playing ? 'none' : '';
@@ -195,7 +185,7 @@ const shows = Object.values(rawShows).sort(
           timeEl!.textContent = fmtTime(audio.currentTime);
           if (audio.duration) fillEl!.style.width = ((audio.currentTime / audio.duration) * 100).toFixed(2) + '%';
         });
-        audio.addEventListener('ended', () => { setPlaying(false); win.__dlActiveAudio = null; win.__dlActiveCard = null; win.__dlActiveTray = null; });
+        audio.addEventListener('ended', () => { setPlaying(false); playback.release(owner); });
         progressWrap?.addEventListener('click', (e: MouseEvent) => {
           if (!audio.duration) return;
           const rect = progressWrap.getBoundingClientRect();
@@ -203,20 +193,16 @@ const shows = Object.values(rawShows).sort(
         });
         btn.addEventListener('click', (e: Event) => {
           e.stopPropagation();
-          const isThisPlaying = win.__dlActiveAudio === audio && !audio.paused;
-          if (isThisPlaying) {
+          if (!audio.paused) {
             audio.pause();
             setPlaying(false);
+            playback.release(owner);
           } else {
-            stopActive();
-            // An episode and the live stream together sound like an echo.
-            win.__dlLiveAudio?.pause();
+            // Stops the live stream or any other episode; together they sound like an echo.
+            playback.claim(owner, () => { audio.pause(); setPlaying(false); });
             if (!audio.src) audio.src = src;
             audio.play().catch(() => {});
             setPlaying(true);
-            win.__dlActiveAudio = audio;
-            win.__dlActiveCard = card;
-            win.__dlActiveTray = tray;
           }
         });
       });
