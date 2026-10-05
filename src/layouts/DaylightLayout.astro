@@ -149,6 +149,7 @@ const navLinks = [
 
     <script>
       import { getPlaybackRegistry } from "../lib/playback";
+      import { createStreamKeeper } from "../lib/streamKeeper";
 
       function initDaylightPage() {
         // ── Mobile nav toggle (nav itself is not persisted, rewired every page) ──
@@ -264,15 +265,42 @@ const navLinks = [
           volBtn!.setAttribute('aria-expanded', 'false');
         }
 
+        // Rejoins the stream by itself when the connection drops, instead of
+        // leaving the listener to notice the silence and press play again.
+        let labelBeforeReconnect: string | null = null;
+        const startStream = () => {
+          // Re-set src on every play so a paused/reconnected listener always
+          // rejoins at the live edge rather than resuming a stale buffer.
+          audio.src = SRC;
+          audio.play().catch((e: unknown) => {
+            // AbortError just means a newer load replaced this one.
+            if ((e as { name?: string })?.name !== 'AbortError') keeper.dropped();
+          });
+        };
+        const keeper = createStreamKeeper({
+          reconnect: startStream,
+          reconnecting: () => {
+            if (labelBeforeReconnect === null) labelBeforeReconnect = playerLabel?.textContent ?? null;
+            if (playerLabel) playerLabel.textContent = 'Reconnecting…';
+          },
+          giveUp: () => {
+            labelBeforeReconnect = null;
+            if (playerLabel) playerLabel.textContent = 'Could not load stream';
+            setPlaying(false);
+            playback.release('live');
+          },
+          schedule: (fn, ms) => {
+            const t = setTimeout(fn, ms);
+            return () => clearTimeout(t);
+          },
+        });
+
         btn.addEventListener('click', () => {
-          if (audio.paused) {
-            // Re-set src on every play so a paused/reconnected listener always
-            // rejoins at the live edge rather than resuming a stale buffer.
-            audio.src = SRC;
-            audio.play().catch(() => {
-              if (playerLabel) playerLabel.textContent = 'Could not load stream';
-            });
+          if (audio.paused && !keeper.wanted) {
+            keeper.start();
+            startStream();
           } else {
+            keeper.stop();
             // Set UI state synchronously rather than waiting on the 'pause'
             // event, which fires asynchronously and was arriving too late
             // (or not at all) to reliably flip the button back to "play".
@@ -284,14 +312,29 @@ const navLinks = [
         });
         audio.addEventListener('playing', () => {
           setPlaying(true);
+          keeper.playing();
+          if (labelBeforeReconnect !== null && playerLabel) playerLabel.textContent = labelBeforeReconnect;
+          labelBeforeReconnect = null;
           // Pauses any episode that is playing, so the two never overlap.
-          playback.claim('live', () => audio.pause());
+          playback.claim('live', () => {
+            keeper.stop();
+            audio.pause();
+          });
         });
+        audio.addEventListener('timeupdate', () => keeper.progress());
         audio.addEventListener('pause', () => {
+          // A pause the listener didn't ask for (the stream ended) is handled
+          // by the keeper; the button keeps showing "playing" while it reconnects.
+          if (keeper.wanted) return;
           setPlaying(false);
           playback.release('live');
         });
+        audio.addEventListener('ended', () => keeper.dropped());
         audio.addEventListener('error', () => {
+          if (keeper.wanted) {
+            keeper.dropped();
+            return;
+          }
           if (playerLabel) playerLabel.textContent = 'Could not load stream';
           setPlaying(false);
         });

@@ -3,6 +3,7 @@
 // wrangler.jsonc run_worker_first).
 
 import { connect } from 'cloudflare:sockets';
+import { relayBody } from './relay.js';
 
 // Icecast source is plain HTTP (no TLS on that port) and wpnx.org is HTTPS,
 // so a browser <audio src> pointed straight at it is mixed content and gets
@@ -151,22 +152,9 @@ async function handleStream(request) {
   const contentTypeMatch = headerText.match(/^Content-Type:\s*(.+)$/im);
   if (contentTypeMatch) headers['Content-Type'] = contentTypeMatch[1].trim();
 
-  const body = new ReadableStream({
-    start(controller) {
-      if (leadingBody.length > 0) controller.enqueue(leadingBody);
-    },
-    async pull(controller) {
-      const { value, done } = await reader.read();
-      if (done) {
-        controller.close();
-        return;
-      }
-      controller.enqueue(value);
-    },
-    cancel() {
-      reader.cancel().catch(() => {});
-      socket.close().catch(() => {});
-    },
+  reader.releaseLock();
+  const body = relayBody(leadingBody, socket.readable, {
+    onDone: () => socket.close().catch(() => {}),
   });
 
   return new Response(body, { status: 200, headers });
