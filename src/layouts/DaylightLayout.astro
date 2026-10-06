@@ -150,6 +150,8 @@ const navLinks = [
     <script>
       import { getPlaybackRegistry } from "../lib/playback";
       import { createStreamKeeper } from "../lib/streamKeeper";
+      import { createSourcePicker, STREAM_URLS } from "../lib/streamSource";
+      import { createNowPlayingPoller, ICECAST_STATUS_URL } from "../lib/nowPlaying";
 
       function initDaylightPage() {
         // ── Mobile nav toggle (nav itself is not persisted, rewired every page) ──
@@ -170,12 +172,12 @@ const navLinks = [
         // ── Now-playing live feed — drives the nav badge (rewired each
         // page-load, since it isn't transition:persist'd) and the player's
         // DJ name / song+artist display (persisted, but harmless to
-        // re-query each page-load: same DOM nodes throughout). Server-sent
-        // events instead of client polling: the Worker itself watches
-        // Icecast every ~4s and only pushes when the payload actually
-        // changes, so a track change reaches the page in seconds instead of
-        // waiting out a poll interval. One shared EventSource for both,
-        // re-armed here with the previous page's connection closed first. ──
+        // re-query each page-load: same DOM nodes throughout). The browser
+        // reads the song from Icecast itself (stream.wpnx.org, HTTPS) every
+        // few seconds and the DJ from /api/now-playing once a minute. The old
+        // held-open server-sent-events connection kept a Worker running and
+        // hit the free plan's CPU limit 100+ times a day. One shared poller,
+        // stopped here when the previous page's one is replaced. ──
         const navStatusText = document.getElementById('dlNavStatusText') as HTMLElement | null;
         const playerLabel = document.getElementById('dlPlayerLabel') as HTMLElement | null;
         const nowPlayingBox = document.getElementById('dlPlayerNowPlaying') as HTMLElement | null;
@@ -215,17 +217,31 @@ const navLinks = [
             }
           };
 
-          const source = new EventSource('/api/now-playing-stream');
-          source.addEventListener('now-playing', (e: MessageEvent) => {
-            try {
-              applyNowPlaying(JSON.parse(e.data));
-            } catch {
-              // malformed event — wait for the next one rather than guessing
-            }
+          const getJson = async (url: string) => {
+            const res = await fetch(url, { cache: 'no-store' });
+            if (!res.ok) throw new Error(`${url}: ${res.status}`);
+            return res.json();
+          };
+          const poller = createNowPlayingPoller({
+            fetchSong: () => getJson(ICECAST_STATUS_URL),
+            fetchSite: () => getJson('/api/now-playing'),
+            onUpdate: applyNowPlaying,
+            schedule: (fn, ms) => {
+              const t = setTimeout(fn, ms);
+              return () => clearTimeout(t);
+            },
+            now: () => Date.now(),
+            visible: () => document.visibilityState === 'visible',
           });
-          win.__dlNowPlayingSource = source;
-          // EventSource retries the connection on its own after an error;
-          // nothing to do here beyond letting the browser's default kick in.
+          poller.start();
+          const onVisible = () => poller.wake();
+          document.addEventListener('visibilitychange', onVisible);
+          win.__dlNowPlayingSource = {
+            close: () => {
+              poller.stop();
+              document.removeEventListener('visibilitychange', onVisible);
+            },
+          };
         }
 
         // ── Persistent stream player — guarded so a persisted node is only wired once ──
@@ -244,7 +260,6 @@ const navLinks = [
         const iconPause = btn.querySelector('.dl-player__icon--pause') as HTMLElement;
         const iconVolOn = volBtn.querySelector('.dl-player__icon--vol-on') as HTMLElement;
         const iconVolOff = volBtn.querySelector('.dl-player__icon--vol-off') as HTMLElement;
-        const SRC = '/api/stream';
         audio.volume = parseFloat(volSlider.value);
 
         function setPlaying(playing: boolean) {
@@ -268,17 +283,23 @@ const navLinks = [
         // Rejoins the stream by itself when the connection drops, instead of
         // leaving the listener to notice the silence and press play again.
         let labelBeforeReconnect: string | null = null;
+        // The direct HTTPS stream first; the Worker relay if that fails.
+        const sources = createSourcePicker(STREAM_URLS);
         const startStream = () => {
           // Re-set src on every play so a paused/reconnected listener always
           // rejoins at the live edge rather than resuming a stale buffer.
-          audio.src = SRC;
+          audio.src = sources.current();
           audio.play().catch((e: unknown) => {
             // AbortError just means a newer load replaced this one.
             if ((e as { name?: string })?.name !== 'AbortError') keeper.dropped();
           });
         };
         const keeper = createStreamKeeper({
-          reconnect: startStream,
+          reconnect: () => {
+            // Each reconnect tries the other source, so a failing one is never retried back to back.
+            sources.failed();
+            startStream();
+          },
           reconnecting: () => {
             if (labelBeforeReconnect === null) labelBeforeReconnect = playerLabel?.textContent ?? null;
             if (playerLabel) playerLabel.textContent = 'Reconnecting…';
@@ -298,6 +319,7 @@ const navLinks = [
         btn.addEventListener('click', () => {
           if (audio.paused && !keeper.wanted) {
             keeper.start();
+            sources.reset();
             startStream();
           } else {
             keeper.stop();
