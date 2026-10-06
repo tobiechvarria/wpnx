@@ -27,8 +27,9 @@ const lines = [
       ))}
     </div>
 
-    <form id="dlForm" class="dl-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate aria-describedby="dl-form-errors">
+    <form id="dlForm" class="dl-form" action="https://formsubmit.co/ajax/volunteer@wpnx.org" method="POST" novalidate aria-describedby="dl-form-errors">
       <p class="dl-section__title" style="margin-top:2.5rem;">Add Your Entry</p>
+      <input type="hidden" name="_subject" value="New participate form entry — wpnx.org" />
       <div id="dl-form-errors" role="alert" aria-live="polite" class="dl-form__errors" hidden></div>
       <div class="dl-form__row">
         <div class="dl-form__field">
@@ -54,7 +55,7 @@ const lines = [
       </div>
       <div class="dl-form__footer">
         <button type="submit" class="dl-btn dl-btn--primary">Submit Entry</button>
-        <a href="mailto:info@freeradiopensacola.com" class="dl-form__email">info@freeradiopensacola.com</a>
+        <a href="mailto:volunteer@wpnx.org" class="dl-form__email">volunteer@wpnx.org</a>
       </div>
       <div class="dl-form__success" id="dlFormSuccess" role="alert" hidden>Entry received — we'll be in touch. Keep it free.</div>
     </form>
@@ -108,7 +109,7 @@ const lines = [
           if (res.ok) { form.hidden = true; successEl.hidden = false; }
           else { errorsEl.textContent = 'Something went wrong. Please try again or email us directly.'; errorsEl.hidden = false; }
         } catch {
-          errorsEl.textContent = 'Could not send — please email info@freeradiopensacola.com directly.';
+          errorsEl.textContent = 'Could not send — please email volunteer@wpnx.org directly.';
           errorsEl.hidden = false;
         }
       });
