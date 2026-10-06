@@ -24,9 +24,17 @@ const ICECAST_HOST = '158.101.102.214';
 const ICECAST_PORT = 8000;
 const ICECAST_PATH = '/stream';
 
+const BYPASS_COOKIE = 'wpnx_bypass';
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (env.MAINTENANCE_MODE === 'true' && !url.pathname.startsWith('/api/')) {
+      const maintenanceResponse = handleMaintenance(request, url, env);
+      if (maintenanceResponse) return maintenanceResponse;
+    }
+
     if (url.pathname === '/api/now-playing') {
       return handleNowPlaying(env, url.searchParams.has('debug'));
     }
@@ -39,6 +47,44 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
+
+// Site-wide gate: while MAINTENANCE_MODE is on, every page route except the
+// ones in OPEN_PATHS redirects to /donate — the other pages (shows,
+// home) stay in the build untouched, just not linked-to
+// publicly, so they come back the moment this is switched off. Static assets
+// always pass through (open pages need their CSS/images/fonts to render).
+// Flip on/off with `wrangler secret put MAINTENANCE_MODE` (true/false) — no
+// redeploy needed. A visit to /?bypass=<BYPASS_TOKEN> sets a long-lived
+// cookie so the owner keeps seeing the full site while everyone else only
+// gets the open pages. Returns null (meaning "let normal routing continue")
+// when the request should pass through unrestricted.
+const ASSET_EXTENSION = /\.[a-z0-9]+$/i;
+
+function handleMaintenance(request, url, env) {
+  const token = env.BYPASS_TOKEN;
+  const suppliedToken = url.searchParams.get('bypass');
+  if (token && suppliedToken === token) {
+    const redirectUrl = new URL(url);
+    redirectUrl.searchParams.delete('bypass');
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: redirectUrl.pathname + redirectUrl.search,
+        'Set-Cookie': `${BYPASS_COOKIE}=${token}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`,
+      },
+    });
+  }
+
+  const cookieHeader = request.headers.get('Cookie') || '';
+  const cookieMatch = cookieHeader.match(new RegExp(`(?:^|;\\s*)${BYPASS_COOKIE}=([^;]+)`));
+  if (token && cookieMatch && cookieMatch[1] === token) return null;
+
+  const OPEN_PATHS = new Set(['/donate', '/donate/', '/about', '/about/', '/participate', '/participate/']);
+  if (OPEN_PATHS.has(url.pathname)) return null;
+  if (ASSET_EXTENSION.test(url.pathname)) return null;
+
+  return Response.redirect(new URL('/donate', url).toString(), 302);
+}
 
 // Playlist -> DJ name barely ever changes (a playlist runs a full hour) while
 // /api/now-playing gets polled every 45s per listener, so this holds the one
