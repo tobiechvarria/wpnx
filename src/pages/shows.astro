@@ -77,7 +77,7 @@ const shows = Object.values(rawShows).sort(
 
     .show-card__art {
       aspect-ratio: 1;
-      background: var(--color-ink);
+      background: var(--color-paper-alt);
       overflow: hidden;
       position: relative;
       display: flex;
@@ -94,7 +94,7 @@ const shows = Object.values(rawShows).sort(
       transition: color 0.2s ease, transform 0.25s ease;
     }
     .show-card:hover .show-card__mark,
-    .show-card:focus-within .show-card__mark { color: var(--color-paper); transform: translateY(0.12em) translateX(0.05em) scale(1.04); }
+    .show-card:focus-within .show-card__mark { color: var(--color-ink); transform: translateY(0.12em) translateX(0.05em) scale(1.04); }
 
     .show-card__body { padding: 1rem 1.1rem 0.75rem; flex: 1; }
     .show-card__title {
@@ -103,7 +103,7 @@ const shows = Object.values(rawShows).sort(
     }
     .show-card__host {
       font-family: var(--f-mono); font-size: 0.68rem; letter-spacing: 0.04em;
-      color: var(--color-accent-dark); margin: 0 0 0.5rem; text-transform: uppercase;
+      color: var(--color-accent); margin: 0 0 0.5rem; text-transform: uppercase;
     }
     .show-card__episode {
       font-family: var(--f-mono); font-size: 0.68rem; color: var(--color-muted);
@@ -122,7 +122,7 @@ const shows = Object.values(rawShows).sort(
       padding: 0.5rem 0.75rem; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
     }
     .show-card__btn:hover, .show-card__btn:focus-visible, .show-card__btn.is-playing {
-      background: var(--color-accent); border-color: var(--color-accent); color: #fff;
+      background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent);
     }
     .show-card__icon { width: 12px; height: 12px; fill: currentColor; pointer-events: none; flex-shrink: 0; }
 
