@@ -9,6 +9,10 @@
 		"binding": "ASSETS",
 		"run_worker_first": true
 	},
+	// The participate form's email: sent through Email Routing to a verified inbox.
+	// FORM_TO (the inbox) and TURNSTILE_SECRET_KEY are Worker secrets, kept out of this public repo.
+	"send_email": [{ "name": "SEND_EMAIL" }],
+	"vars": { "FORM_FROM": "website@wpnx.org" },
 	"observability": {
 		"enabled": true
 	}

@@ -3,7 +3,9 @@
 // wrangler.jsonc run_worker_first).
 
 import { connect } from 'cloudflare:sockets';
+import { EmailMessage } from 'cloudflare:email';
 import { relayBody } from './relay.js';
+import { handleParticipate } from './participate.js';
 import { parseIcecastTitle } from '../src/lib/nowPlaying';
 
 // Icecast source is plain HTTP (no TLS on that port) and wpnx.org is HTTPS,
@@ -38,6 +40,14 @@ export default {
 
     if (url.pathname === '/api/now-playing') {
       return handleNowPlaying(env, url.searchParams.has('debug'));
+    }
+    if (url.pathname === '/api/participate') {
+      return handleParticipate(request, env, {
+        fetch: (input, init) => fetch(input, init),
+        send: ({ from, to, raw }) => env.SEND_EMAIL.send(new EmailMessage(from, to, raw)),
+        now: () => new Date(),
+        id: () => crypto.randomUUID(),
+      });
     }
     if (url.pathname === '/api/stream') {
       return handleStream(request);
