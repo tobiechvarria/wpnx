@@ -33,6 +33,14 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // www.wpnx.org is attached to this Worker too (see wrangler.jsonc routes)
+    // so it resolves at all; send it to the bare domain so there's one
+    // canonical address for links, cookies and search engines.
+    if (url.hostname === 'www.wpnx.org') {
+      url.hostname = 'wpnx.org';
+      return Response.redirect(url.toString(), 301);
+    }
+
     if (env.MAINTENANCE_MODE === 'true' && !url.pathname.startsWith('/api/')) {
       const maintenanceResponse = handleMaintenance(request, url, env);
       if (maintenanceResponse) return maintenanceResponse;

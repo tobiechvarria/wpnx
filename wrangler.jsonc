@@ -4,6 +4,12 @@
 	"compatibility_flags": ["global_fetch_strictly_public"],
 	"name": "wpnx",
 	"main": "worker/index.js",
+	// Custom domains: deploy creates the DNS records and certificates for both.
+	// The Worker redirects www to the bare domain.
+	"routes": [
+		{ "pattern": "wpnx.org", "custom_domain": true },
+		{ "pattern": "www.wpnx.org", "custom_domain": true }
+	],
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS",
